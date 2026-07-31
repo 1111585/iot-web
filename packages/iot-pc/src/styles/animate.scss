@@ -1,0 +1,27 @@
+.el-fadein-enter-active,
+.el-fade-in-leave-active {
+  transition: all 0.3s cubic-bezier(0.55, 0, 0.1, 1);
+  --ccc: xxx
+}
+.el-fade-in-enter,
+.el-fade-in-leave-active {
+  opacity: 0;
+}
+
+.fade-in-right-enter-active,
+.fade-in-right-leave-active {
+  transition: all 0.4s ease-out;
+}
+.fade-in-right-enter-from,
+.fade-in-right-leave-to {
+  transform: translate3d(100%, 0, 0);
+}
+
+.fade-in-left-enter-active,
+.fade-in-left-leave-active {
+  transition: all 0.4s ease-out;
+}
+.fade-in-left-enter-from,
+.fade-in-left-leave-to {
+  transform: translate3d(-100%, 0, 0);
+}

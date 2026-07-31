@@ -1,0 +1,22 @@
+{
+  "name": "iot-workspace",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev:h5": "pnpm --dir ./packages/iot-h5 dev ",
+    "dev:pc": "pnpm --dir ./packages/iot-pc dev ",
+    "build:pc:test": "pnpm --dir ./packages/iot-pc build:test ",
+    "preview:pc": "pnpm run preview --filter iot-pc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.8.10",
+    "vite": "^5.3.1"
+  },
+  "dependencies": {
+    "pnpm": "^9.15.9"
+  }
+}

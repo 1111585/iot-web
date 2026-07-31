@@ -1,0 +1,27 @@
+# ===== 依赖 =====
+node_modules/
+
+# ===== 构建产物 =====
+dist/
+output/
+*.tsbuildinfo
+
+# ===== 环境变量（本地） =====
+# .env.local
+# .env.*.local
+
+# ===== 缓存 =====
+.eslintcache
+stats.html
+.cache/
+
+# ===== 编辑器 =====
+# *.swp
+# *.swo
+# *~
+# .vscode/settings.json
+
+# ===== 操作系统 =====
+Thumbs.db
+.DS_Store
+Desktop.ini

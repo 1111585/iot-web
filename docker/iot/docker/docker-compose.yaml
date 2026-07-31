@@ -1,0 +1,113 @@
+version: '3.8'
+
+services: 
+
+  iot-server:
+    build: ../server
+    restart: always
+    container_name: iot-server
+    environment:
+      LOCAL_IP: ${LOCAL_IP}
+    ports:
+      - "${IOT_SERVER_PORT:-8089}:8089"
+    depends_on:
+      - mysql
+      - redis
+      - minio
+    volumes:
+      - ./volumes/iot/server/logs:/app/logs
+    networks:
+      - iot-network
+
+  minio:
+    image: 'minio/minio:latest'
+    restart: always
+    container_name: minio
+    ports:
+      - "${MINIO_PROT:-9000}:9000"
+      - "${CONSOLE_PROT:-9001}:9001"
+    volumes:
+      - ./volumes/minio-data:/data
+    environment:
+      MINIO_ROOT_USER: ${MINIO_USER:-infoview}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD:-infoview@168}
+    command: server /data --console-address ":9001"
+    networks:
+      - iot-network
+  redis:
+    image: 'redis:7.4.2-alpine'
+    restart: always
+    container_name: redis
+    ports:
+      - "${REDIS_PROT:-6379}:6379"
+    environment:
+      REDISCLI_AUTH: ${REDIS_PASSWORD:-infoview@123456}
+    command: redis-server --requirepass ${REDIS_PASSWORD:-infoview@123654}
+    volumes:
+      - ./volumes/redis-data:/data
+    healthcheck:
+      test: [ 'CMD', 'redis-cli', 'ping' ]
+    networks:
+      - iot-network
+  mysql:
+    image: circleci/mysql:5.7
+    restart: always
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD:-Omm123!@#}
+      TZ: "Asia/Shanghai"
+    ports:
+      - "${MYSQL_PROT:-3306}:3306"
+    volumes:
+      - ./volumes/mysql_data:/var/lib/mysql
+    networks:
+      - iot-network
+#  m7s:
+#    build: '../monibuca'
+#    container_name: m7s
+#    restart: unless-stopped
+#    ports:
+#      - "${M7S_PROT:-8080}:8080"
+#      - "${M7S_PROT:-8080}:8080/udp"
+#      - "${M7S_SIP:-5060}:5060/udp"
+#      - "58200-59200:58200-59200"
+#    volumes:
+#      - ./volumes/m7s/logs:/monibuca/logs
+#    environment:
+#      TZ: "Asia/Shanghai"
+#      LOCAL_IP: ${LOCAL_IP}
+#    networks:
+#      - iot-network
+  web:
+    build: '../site'
+    restart: always
+    container_name: web
+    environment:
+      TZ: "Asia/Shanghai"
+    ports:
+      - '${WEB_PORT:-80}:80'
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+    depends_on:
+      - iot-server
+    networks:
+      - iot-network
+  # iotdevice:
+  #   build: '../iotdev'
+  #   container_name: iotdevice
+  #   restart: unless-stopped
+  #   ports:
+  #     - "${IOTDEVICE_PROT:-8610}:8610"
+  #     - "${IOTDEVICE_PROT:-8618}:8618"
+  #     - "${IOTDEVICE_HTTP:-8600}:8600"
+  #   volumes:
+  #     - ./volumes/iotdevice/logs:/iotdevice/log
+  #   environment:
+  #     TZ: "Asia/Shanghai"
+  #     LOCAL_IP: ${LOCAL_IP}
+  #   networks:
+  #     - iot-network
+
+networks:
+  iot-network:
+    driver: bridge

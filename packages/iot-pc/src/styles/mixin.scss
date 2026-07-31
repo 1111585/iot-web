@@ -1,0 +1,58 @@
+//宽高
+@mixin wh($width, $height: 100%) {
+  width: $width;
+  height: $height;
+}
+//多行文字超出显示省略号
+@mixin ellipsis-multiline($number: 1) {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  word-break: break-all;
+  text-overflow: ellipsis;
+  -webkit-line-clamp: $number;
+}
+//文字一行超出显示省略号
+@mixin ellipsis() {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+// 行高
+@mixin line-height($line-height: 30, $height) {
+  line-height: $line-height + px;
+  @if ($height != null) {
+    height: $height + px;
+  } @else {
+    height: $line-height + px;
+  }
+}
+/*弹性盒子（传入null不设置该属性）*/
+@mixin flex-box($justify: null, $align: center, $flex-wrap: null, $direction: row) {
+  display: flex;
+  @if ($direction!=null) {
+    flex-direction: $direction;
+  }
+  @if ($justify!=null) {
+    justify-content: $justify;
+  }
+  @if ($align!=null) {
+    align-items: $align;
+  }
+  @if ($flex-wrap != null) {
+    flex-wrap: $flex-wrap;
+  }
+}
+
+/** el-select 全宽 */
+@mixin selector-full-width() {
+  &:deep(.el-form-item__content) {
+    width: 100%;
+    el-input {
+      width: 100%;
+    }
+    .el-select {
+      width: 100%;
+    }
+  }
+}

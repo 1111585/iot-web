@@ -1,0 +1,10 @@
+version: "3"
+services:
+  dmzn: # 实际部署时名字改下 ... iot、dmzn 或者以后其他的
+    build: .
+    container_name: dmzn-web
+    ports:
+      - "80:80"
+    restart: always
+    # volumes:
+    #   - ./web:/usr/share/nginx/html

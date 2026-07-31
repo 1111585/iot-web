@@ -1,0 +1,39 @@
+@use '@/styles/mixin.scss';
+.custom-form {
+  padding: 20px;
+  padding-right: 40px;
+  @include mixin.selector-full-width();
+}
+
+.aside-container {
+  display: flex;
+  flex-direction: column;
+  height: 97%;
+  min-height: 800px;
+  padding: 10px;
+
+  &__divider {
+    margin: 14px auto;
+  }
+
+  &__node {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__button {
+    // margin-right: 10px;
+    margin-top: 12px;
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--el-text-color-secondary);
+    text-align: center;
+  }
+
+  &__clear {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 12px;
+  }
+}
