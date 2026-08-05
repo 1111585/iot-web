@@ -47,11 +47,7 @@ if (isDev) {
   )
 }
 
-if (__appType === 'dmzn') {
-  whitePages.push({ url: '/devices', def: true })
-} else {
-  whitePages.push({ url: '/dashboard/devices', def: true })
-}
+whitePages.push({ url: '/dashboard/devices', def: true })
 
 const whiteList = whitePages.map(({ url }) => url)
 const defPage = whitePages.filter(({ def }) => def)[0].url
@@ -111,7 +107,6 @@ export default function (router: Router) {
     // 通过用户信息接口返回的 urls 进行权限控制
     const runPermCheckV2 = () => {
       if (isDev) return next()
-      if (__appType === 'dmzn') return next()
 
       const toPath = to.path
         .split('/')

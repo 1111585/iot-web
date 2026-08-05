@@ -1,17 +1,6 @@
-# 项目列表
-
-- 弧温检测PC端
-- 电眸电气AI管理系统
-
-# 弧温监测PC端
+# 电眸AI智能辅控平台 — 前端
 
 文件位置：`packages/iot-pc`
-
-## 分支
-
-主分支：在仓库地址的根目录
-
-后续分支：在仓库地址的`branches`目录下
 
 ## 资料
 
@@ -21,69 +10,78 @@
 
 [原型地址-大屏](http://hongyuan.cloud/LOLER2/?id=vpjwr2&p=page_1)
 
-## 开发
+## 环境要求
 
-node 1.18.x 版本
+- Node.js 18.x
+- pnpm 9.x（启用方式：`corepack enable`）
 
-pnpm i #依赖安装
-pnpm i element-plus -F iot-pc #安装新包到子项目
+## 本地开发
 
-pnpm remove xxx -F iot-pc #从子项目移除
+### 1. 启动后端（Docker）
 
-pnpm run dev:pc
-pnpm run dev:h5
+```powershell
+cd D:\v0\iot\docker
+docker-compose up -d
+```
 
-pnpm run build:pc:test # 打包内网测试服（`.env.test`）
+启动后确认服务正常：
 
-> 可将 pc 和 h5 依赖删掉，然后在根目录直接运行 pnpm install
+```powershell
+docker ps
+# 应看到 iot-server（8899）、mysql（3306）、redis（6379）、minio（9000）等
+```
 
-## 部署
+### 2. 安装前端依赖
 
-**内网33**
+```powershell
+cd D:\ARC\web\iot-web
+pnpm install
+```
 
-- sftp、ssh：192.168.1.33:55555
+> 注意：`@infoview/util` 是内部工具包，通过本地路径 `local-packages/infoview-util/` 挂载，无需私有 npm 源。
 
-- 用户：root
-- 密码：🔒
+### 3. 启动开发服务器
 
-- 部署位置：/v0/iot/web
-- 访问地址：http://192.168.1.33:8999
+```powershell
+pnpm dev:pc
+# 浏览器打开 http://localhost:8008
+```
 
-**远程**
+### 4. 首次启动注意事项
 
-sftp、ssh：192.168.1.95:22
+- 默认首页 `/dashboard/devices` 开发模式下使用了 mock 数据，如需后端真实数据，将 `src/views/dashboard/devices.vue` 第 205 行改为 `const useMockData = false`
+- 开发服务器通过 Vite proxy 将 `/api` 转发到 `http://localhost:8899`（Docker 后端）
 
-- 用户：omm、root（更新需要使用root）
-- 密码：🔒
+## 打包
 
-- 部署位置：/v0/iot/site/web
-- 访问地址：http://192.168.1.95
+| 命令 | 环境 | 说明 |
+|------|------|------|
+| `pnpm dev:pc` | dev | 本地开发，端口 8008 |
+| `pnpm --dir ./packages/iot-pc build:test` | test | 内网测试服 |
+| `pnpm --dir ./packages/iot-pc build:本地测试` | any | 本地 Nginx 验证 |
+| `pnpm --dir ./packages/iot-pc build:远程部署` | pro | 远程生产部署 |
+| `pnpm --dir ./packages/iot-pc build:debug` | debug | 保留 console 的调试包 |
 
-> 由于是全 docker 部署。不管是更新服务还是更新 web 都需要执行 run.sh脚本（`/v0/iot/run.sh`）
+构建输出到 `dist/pc/`。
 
-## 本地测试
+## 环境变量
 
-> 本地测试打包结果是否正常，使用nginx代理解决跨域问题
+配置文件位于 `packages/iot-pc/envs/`，通过 Vite `--mode` 参数匹配：
 
-```conf
-server {
-    listen       80;
-    listen  [::]:80;
-    server_name  localhost;
+| 文件 | mode | 用途 |
+|------|------|------|
+| `.env.dev` | dev | 本地开发 |
+| `.env.test` | test | 内网测试 |
+| `.env.any` | any | 本地打包验证 |
+| `.env.pro` | pro | 远程部署 |
+| `.env.debug` | debug | 调试排查 |
 
-    location / {
-        root   /usr/share/nginx/html;
-        index  index.html index.htm;
-    }
-    # /iot-api/ 和 http://192.168.1.33:8899/ 确保都以 / 结尾
-    location /iot-api/ {
-        proxy_pass http://192.168.1.33:8899/;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
+## Docker 部署
+
+```powershell
+# 构建并启动全部服务
+cd D:\v0\iot\docker
+docker-compose up -d --build
 ```
 
 ## 其他
@@ -201,7 +199,7 @@ if (MediaSource.isTypeSupported(mimeType)) {
 
 wasm 版本ffmpeg，从视频中截取帧，除了安装对应包外，还需要将 `ffmpeg-core.js`、`ffmpeg-core.wasm` 放在 `public` 目录下方便使用
 
-### `@dataview/datav-vue3`
+### `@kjgl77/datav-vue3`
 
 大屏中的边框、动画装饰
 
@@ -305,15 +303,3 @@ npm run dev
 ```
 
 测试文件会输出SM3哈希、SM2密钥对生成、SM2签名和验签的结果。
-
-# 电眸电气AI管理系统
-
-> 和弧温监测共用, 特定目录 `views/_dmzn`
-
-文件位置：`packages/iot-pc`
-
-因为和弧温监测公用了内容，所分模块打包，排除不必要的内容：
-
-1. 动态路由导入
-2. `main.ts`动态依赖导入
-3. `rollupOption.external`配置排除的文件夹（主要是`src/components`下面的内容）

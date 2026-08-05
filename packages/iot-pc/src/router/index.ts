@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
-import { dmzn } from './dmzn'
 import { iot } from './iot'
 import permission from './permission'
 import { parseQuery, stringifyQuery } from './query'
@@ -77,7 +76,7 @@ const routes: Record<string, Array<RouteRecordRaw>> = {
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.VITE_APP_WEB_PREFIX),
-  routes: [...routes.default, ...(__appType === 'iot' ? iot : dmzn)],
+  routes: [...routes.default, ...iot],
   stringifyQuery, // 序列化query参数
   parseQuery // 反序列化query参数
 })

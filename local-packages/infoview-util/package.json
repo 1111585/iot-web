@@ -1,0 +1,32 @@
+{
+  "name": "@infoview/util",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/util.umd.js",
+  "module": "dist/util.mjs",
+  "typings": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "readme.md"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "watch": "tsc -w"
+  },
+  "author": "infoview",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.6.0",
+    "@vueuse/core": "^10.7.2",
+    "lodash-es": "^4.17.21",
+    "typescript": "^5.0.2",
+    "vite": "^4.1.4",
+    "vite-plugin-dts": "^3.5.3"
+  },
+  "dependencies": {
+    "axios": "^0.21.1",
+    "clipboard": "^2.0.11",
+    "crypto-js": "^4.1.1",
+    "mitt": "^3.0.1"
+  }
+}

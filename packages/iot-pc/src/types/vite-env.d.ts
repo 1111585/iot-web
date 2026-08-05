@@ -35,7 +35,7 @@ interface ImportMetaEnv {
   VITE_APP_DEPLOY_ON: string
 
   /** 系统类型 */
-  VITE_APP_TYPE: 'dmzn' | 'iot'
+  VITE_APP_TYPE: 'iot'
 }
 
 interface ImportMeta {
@@ -46,6 +46,6 @@ declare const __tools: {
   safeJsonParse: <T>(str: string, log?: boolean) => T | null
 }
 
-declare const __appType: 'dmzn' | 'iot'
+declare const __appType: 'iot'
 
 declare const __appTitle: string

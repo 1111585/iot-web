@@ -4,12 +4,6 @@
       <div class="flex-box items-center">
         <div style="width: 56px; height: 40px; margin-left: 10px; margin-bottom: 2px">
           <img
-            v-if="appType === 'dmzn'"
-            src="/images/app-dmzn.png"
-            style="width: 100%; height: 100%; user-select: none; transform: scale(1.2)"
-          />
-          <img
-            v-else
             src="/images/ent_logo_2.png"
             style="width: 100%; height: 100%; user-select: none"
           />
@@ -20,7 +14,6 @@
     <el-col :span="12" :offset="0">
       <div class="flex-box items-center f12 content-end">
         <ElTooltip
-          v-if="appType !== 'dmzn'"
           class="box-item"
           effect="light"
           :content="isMuteBell ? '开启声音提醒' : '关闭声音提醒'"
@@ -37,7 +30,6 @@
           </div>
         </ElTooltip>
         <ElTooltip
-          v-if="appType !== 'dmzn'"
           class="box-item"
           effect="light"
           content="智慧大屏"
@@ -49,8 +41,6 @@
           </div>
         </ElTooltip>
         <ElTooltip
-          v-if="appType !== 'dmzn'"
-          class="box-item"
           effect="light"
           content="退出登录"
           placement="bottom"
@@ -72,7 +62,6 @@ import audioStore from '@/store/audio'
 import { ElMessageBox } from 'element-plus'
 
 const appTitle = __appTitle
-const appType = __appType
 
 const audio = audioStore()
 

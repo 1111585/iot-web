@@ -125,24 +125,7 @@ onMounted(() => {
     isCollapse.value = sidebarOpened.value
   })
 
-  if (__appType === 'dmzn') {
-    menus.value = [
-      {
-        id: 'devices',
-        parentId: '0',
-        weight: 0,
-        name: '设备列表',
-        icon: 'resource',
-        sort: 0,
-        category: 0,
-        type: 1,
-        code: 'devices',
-        url: '/devices',
-        children: []
-      }
-    ]
-  } else {
-    fetchPermList({ pageSize: 99 }).then((rep) => {
+  fetchPermList({ pageSize: 99 }).then((rep) => {
       const list = rep.data.list
       menus.value = treeDataTranslate(list, 'id', 'pid')
       // menus.value.unshift({
@@ -161,7 +144,6 @@ onMounted(() => {
 
       checkIsShowTour()
     })
-  }
 })
 const userInfo = userStore().userInfo
 

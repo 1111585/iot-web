@@ -18,7 +18,6 @@ import { useRouter } from 'vue-router'
 import { debounce } from 'lodash-es'
 
 const isDev = import.meta.env.MODE === 'dev'
-const appType = __appType
 
 const router = useRouter()
 const state = reactive({
@@ -35,7 +34,7 @@ const isInWhitelist = () => {
 }
 
 function checkGlobalAlert() {
-  if (isInWhitelist() || appType === 'dmzn') {
+  if (isInWhitelist()) {
     return
   }
   handleEventRing()

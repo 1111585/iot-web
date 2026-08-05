@@ -21,16 +21,14 @@ const app = createApp(appView)
 // app.use(router).use(store).use(base).use(VueKonva).use(VNetworkGraph)
 app.use(router).use(store).use(base)
 
-if (__appType !== 'dmzn') {
-  import('v-network-graph').then((module) => {
-    app.use(module.default)
-  })
-  import('v-network-graph/lib/style.css')
+import('v-network-graph').then((module) => {
+  app.use(module.default)
+})
+import('v-network-graph/lib/style.css')
 
-  import('vue-konva').then((module) => {
-    app.use(module.default)
-  })
-}
+import('vue-konva').then((module) => {
+  app.use(module.default)
+})
 
 app.directive('auth', auth)
 

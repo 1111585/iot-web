@@ -22,8 +22,6 @@ const ENV_DIR = './envs'
 export default ({ mode }: any) => {
   process.env = { ...process.env, ...loadEnv(mode, path.resolve(process.cwd(), ENV_DIR)) }
 
-  const APP_TYPE = process.env.VITE_APP_TYPE
-
   return defineConfig({
     base: '/' + (process.env.VITE_APP_WEB_PREFIX || ''),
     envDir: ENV_DIR,
@@ -32,19 +30,14 @@ export default ({ mode }: any) => {
       port: 8008,
       proxy: {
         '/api': {
-          // target: 'http://192.168.0.25:9998',
-          target: 'http://47.97.123.179:55157/iot-api',
-          // target: 'http://192.168.1.33:8999/iot-api',
-          // target: 'http://192.168.1.74/iot-api',
+          target: 'http://localhost:8899',
           secure: false,
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, '')
         },
         //  图片资源代理
         '/oss': {
-          target: 'http://47.97.123.179:9000/',
-          // target: 'http://localhost:54320/',
-          // target: 'http://192.168.1.74/',
+          target: 'http://localhost:9000/',
           secure: false,
           changeOrigin: true,
           rewrite: (path) => {
@@ -56,7 +49,7 @@ export default ({ mode }: any) => {
     preview: {
       proxy: {
         '/iot-api': {
-          target: 'http://192.168.0.44:9998',
+          target: 'http://localhost:9998',
           secure: false,
           changeOrigin: true
         }
@@ -64,33 +57,7 @@ export default ({ mode }: any) => {
     },
     build: {
       emptyOutDir: true,
-      outDir: '../../dist/pc',
-      rollupOptions: {
-        external:
-          APP_TYPE === 'dmzn'
-            ? (id) => {
-                // TODO: 绝大多数可由 main.ts 中处理导入
-                // const externalPackages = [
-                //   '@ffmpeg/ffmpeg',
-                //   '@ffmpeg/util',
-                //   '@ffmpeg/core',
-                //   'xgplayer',
-                //   'jessibuca',
-                //   'v-network-graph'
-                // ]
-
-                // if (externalPackages.includes(id)) {
-                //   return true
-                // }
-
-                const localComponents = ['src/components/drawing', 'src/components/media']
-
-                if (localComponents.some((comp) => id.includes(comp))) return true
-
-                return false
-              }
-            : undefined
-      }
+      outDir: '../../dist/pc'
     },
     esbuild: {
       drop: mode === 'dev' || mode === 'debug' ? [] : ['console', 'debugger']
@@ -131,7 +98,7 @@ export default ({ mode }: any) => {
         injectData: {
           sk: loading(process.env.VITE_APP_THEME_COLOR),
           title: process.env.VITE_APP_TITLE,
-          jessibuca: APP_TYPE === 'dmzn' ? '' : '<script src="/jessibuca/jessibuca.js"></script>'
+          jessibuca: '<script src="/jessibuca/jessibuca.js"></script>'
         }
       }),
       Icons({ autoInstall: true }),

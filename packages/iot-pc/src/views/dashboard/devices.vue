@@ -202,7 +202,8 @@ const drawerComponents = {
 }
 
 const isDev = import.meta.env.DEV
-const useMockData = isDev && true
+// const useMockData = isDev && true
+const useMockData = false
 
 const CFG = {
   // 一个 grid 右侧最多显示 x 个温度
