@@ -1,33 +1,24 @@
 import { request } from '@/util/request'
 import { chartApi } from '@/apis/chart'
-import type { IotCollRes, IotSevenDaysRes, IotOneDayRes } from '../types'
+import type { TcDeviceRes, TcRecordRes } from '../types'
 
-const onError = (error: any) => console.log('[获取采集数据]', error?.message)
-
-interface ResList<T> {
-  records: T[]
-  total: number
-  pages: number
-}
+const onError = (error: any) => console.log('[获取TC数据]', error?.message)
 
 export const iotCollQuery = reactive({
-  pageSize: 10,
+  pageSize: 20,
   pageNum: 1,
   keyword: ''
 })
 
-export const iotCollList = ref<IotCollRes[]>([])
+export const iotCollList = ref<TcDeviceRes[]>([])
 export const iotCollTotal = ref(0)
 
-export async function fetchIotCollection() {
+export async function fetchTcDeviceList() {
   try {
-    const { data } = await request.get<any, ResList<IotCollRes>>(
-      chartApi.getIotDeviceCollectionInfo,
-      iotCollQuery
-    )
-    if (data?.records) {
-      iotCollList.value = data.records
-      iotCollTotal.value = data.total
+    const { data } = await request.get<any, TcDeviceRes[]>(chartApi.getTcDeviceList)
+    if (data) {
+      iotCollList.value = data
+      iotCollTotal.value = data.length
     }
     return { raw: data }
   } catch (error) {
@@ -35,21 +26,12 @@ export async function fetchIotCollection() {
   }
 }
 
-export async function fetchIotSevenDays(deviceId: string) {
+export async function fetchTcRecords(deviceId: string, days: number = 7) {
   try {
-    const { data } = await request.get<any, IotOneDayRes[]>(chartApi.getIotSevenDays, {
-      deviceId
+    const { data } = await request.get<any, TcRecordRes[]>(chartApi.getTcDeviceRecords, {
+      deviceId,
+      days
     })
-
-    return { raw: data }
-  } catch (error) {
-    onError(error)
-  }
-}
-
-export async function fetchIotOneDay(deviceId: string) {
-  try {
-    const { data } = await request.get<any, IotOneDayRes[]>(chartApi.getIotOneDay, { deviceId })
     return { raw: data }
   } catch (error) {
     onError(error)

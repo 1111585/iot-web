@@ -32,6 +32,7 @@ export interface EventRes {
   updateId: string //更新人ID
   picturePath: string //图片路径
   videoUrl: string //视频路径
+  sourceInfo: string // Modbus告警扩展信息(JSON): 寄存器地址、寄存器名等
 }
 
 /** 事件卡片 */
@@ -84,6 +85,7 @@ interface EventDetail {
     updateId: string
     picturePath: string //图片路径
     videoUrl: string //视频路径
+    sourceInfo: string // Modbus告警扩展信息(JSON)
   } //预警对象
   disposeInfoList: {
     disposeId: number //处置ID

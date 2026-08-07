@@ -1,7 +1,11 @@
 export enum EventType {
   '电弧闪络' = 1,
   '超温事件（一级）' = 2,
-  '超温事件（二级）' = 3
+  '超温事件（二级）' = 3,
+  'Modbus阈值告警一级' = 4,
+  'Modbus阈值告警二级' = 5,
+  'Modbus阈值告警三级' = 6,
+  'Modbus趋势告警' = 7
 }
 
 export enum EventStatus {

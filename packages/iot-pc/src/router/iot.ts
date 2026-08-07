@@ -65,21 +65,6 @@ export const iot: RouteRecordRaw[] = [
     ]
   },
   {
-    path: '/monitor-data',
-    name: 'monitorData',
-    redirect: '/monitor-data/index',
-    component: () => import('@/views/layout/index.vue'),
-    meta: { title: '智慧监测', icon: '', hideNavbar: true },
-    children: [
-      {
-        path: 'index',
-        name: 'monitorDataIndex',
-        component: () => import('@/views/monitorData/index.vue'),
-        meta: { title: '其他监测', icon: '' }
-      }
-    ]
-  },
-  {
     path: '/files',
     name: 'files',
     redirect: '/files/video',
@@ -182,6 +167,21 @@ export const iot: RouteRecordRaw[] = [
         name: 'devices',
         component: () => import('@/views/dashboard/devices.vue'),
         meta: { title: '设备总览', icon: '' }
+      }
+    ]
+  },
+  {
+    path: '/monitor-data',
+    name: 'monitorData',
+    redirect: '/monitor-data/index',
+    component: () => import('@/views/layout/index.vue'),
+    meta: { title: '三相电流', icon: '' },
+    children: [
+      {
+        path: 'index',
+        name: 'monitorDataIndex',
+        component: () => import('@/views/monitorData/index.vue'),
+        meta: { title: '三相电流', icon: '' }
       }
     ]
   }

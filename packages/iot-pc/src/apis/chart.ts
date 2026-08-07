@@ -38,7 +38,11 @@ const event = {
 const common = {
   getIotDeviceCollectionInfo: '/iotDevice/device/getIotDeviceCollectionInfo',
   getIotSevenDays: '/iotDevice/device/getDeviceCountWeekDateById',
-  getIotOneDay: '/iotDevice/device/getDeviceCountDayDateById'
+  getIotOneDay: '/iotDevice/device/getDeviceCountDayDateById',
+  setIotDeviceAlarmThreshold: '/iotDevice/device/setIotDeviceAlarmThreshold',
+  // TC 三相电流
+  getTcDeviceList: '/tc/device/list',
+  getTcDeviceRecords: '/tc/device/records'
 }
 
 export const chartApi = {
