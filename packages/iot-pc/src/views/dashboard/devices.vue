@@ -316,8 +316,8 @@ const selectedBox = ref('total')
 
 const deviceStatus = ref([
   { name: '总数', num: 0, value: 'total', unit: '台', type: 'primary' },
-  { name: '在线设备', num: 0, value: 'online', unit: '台', type: 'success' },
-  { name: '离线设备', num: 0, value: 'offline', unit: '台', type: 'danger' }
+  { name: '在线', num: 0, value: 'online', unit: '台', type: 'success' },
+  { name: '离线', num: 0, value: 'offline', unit: '台', type: 'danger' }
 ])
 
 const devices = ref<DevicesRender[]>([])
@@ -437,14 +437,14 @@ const loadDevices = async (showLoading = false) => {
     >()
     statusMap.set('total', { name: '总数', num: 0, value: 'total', unit: '台', type: 'info' })
     statusMap.set('online', {
-      name: '在线设备',
+      name: '在线',
       num: 0,
       value: 'online',
       unit: '台',
       type: 'success'
     })
     statusMap.set('offline', {
-      name: '离线设备',
+      name: '离线',
       num: 0,
       value: 'offline',
       unit: '台',

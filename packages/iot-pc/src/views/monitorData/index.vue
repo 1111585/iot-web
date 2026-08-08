@@ -1,5 +1,5 @@
 <template>
-  <BaseContainer class="tc-container" title="三相电流" v-model:box="selectedBox" :boxes="statusBoxes">
+  <BaseContainer class="tc-container" title="三相电流监测" v-model:box="selectedBox" :boxes="statusBoxes">
     <template #operation>
       <div class="operation-loading" :class="{ active: isFetching }">
         <el-icon class="is-loading"><Loading /></el-icon>
@@ -17,10 +17,10 @@
 
     <el-dialog v-model="configDialog.visible" title="设置告警阈值 & 量程" width="460px" destroy-on-close>
       <el-form :model="configDialog.form" label-width="110px">
-        <el-form-item label="A相阈值(A)"><el-input v-model="configDialog.form.alarmAMax" type="number" /></el-form-item>
-        <el-form-item label="B相阈值(A)"><el-input v-model="configDialog.form.alarmBMax" type="number" /></el-form-item>
-        <el-form-item label="C相阈值(A)"><el-input v-model="configDialog.form.alarmCMax" type="number" /></el-form-item>
-        <el-form-item label="进度条量程(A)"><el-input v-model="configDialog.form.currentRange" type="number" /></el-form-item>
+        <el-form-item label="A相阈值(A)"><el-input v-model="configDialog.form.alarmAMax" type="number" step="any" /></el-form-item>
+        <el-form-item label="B相阈值(A)"><el-input v-model="configDialog.form.alarmBMax" type="number" step="any" /></el-form-item>
+        <el-form-item label="C相阈值(A)"><el-input v-model="configDialog.form.alarmCMax" type="number" step="any" /></el-form-item>
+        <el-form-item label="进度条量程(A)"><el-input v-model="configDialog.form.currentRange" type="number" step="any" /></el-form-item>
       </el-form>
       <template #footer>
         <el-button type="primary" @click="configDialog.submit">确定</el-button>
@@ -77,8 +77,14 @@ const configDialog = reactive({
   visible: false, deviceId: '',
   form: { alarmAMax: '', alarmBMax: '', alarmCMax: '', currentRange: '100' },
   async submit() {
-    await updateTcConfig({ deviceId: this.deviceId, alarmAMax: +this.form.alarmAMax || undefined, alarmBMax: +this.form.alarmBMax || undefined, alarmCMax: +this.form.alarmCMax || undefined, currentRange: +this.form.currentRange || undefined })
-    this.visible = false; ElMessage.success('设置已保存'); loadData()
+    const f = configDialog.form
+    const a = f.alarmAMax !== '' ? +f.alarmAMax : undefined
+    const b = f.alarmBMax !== '' ? +f.alarmBMax : undefined
+    const c = f.alarmCMax !== '' ? +f.alarmCMax : undefined
+    const r = f.currentRange !== '' ? +f.currentRange : undefined
+    const ok = await updateTcConfig({ deviceId: configDialog.deviceId, alarmAMax: a, alarmBMax: b, alarmCMax: c, currentRange: r })
+    if (ok) { configDialog.visible = false; ElMessage.success('设置已保存'); loadData() }
+    else { ElMessage.error('保存失败') }
   }
 })
 
