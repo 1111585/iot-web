@@ -8,6 +8,10 @@ export interface TcDeviceRes {
   currentA: number
   currentB: number
   currentC: number
+  alarmAMax: number | null
+  alarmBMax: number | null
+  alarmCMax: number | null
+  currentRange: number
 }
 
 export interface TcRecordRes {

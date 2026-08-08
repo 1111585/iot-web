@@ -2,7 +2,7 @@ import { request } from '@/util/request'
 import { chartApi } from '@/apis/chart'
 import type { TcDeviceRes, TcRecordRes } from '../types'
 
-const onError = (error: any) => console.log('[获取TC数据]', error?.message)
+const onError = (error: any) => console.log('[鑾峰彇TC鏁版嵁]', error?.message)
 
 export const iotCollQuery = reactive({
   pageSize: 20,
@@ -36,4 +36,9 @@ export async function fetchTcRecords(deviceId: string, days: number = 7) {
   } catch (error) {
     onError(error)
   }
+}
+
+export async function updateTcConfig(payload: { deviceId: string; alarmAMax?: number; alarmBMax?: number; alarmCMax?: number; currentRange?: number }) {
+  try { await request.post(chartApi.updateTcConfig, payload); return true }
+  catch (error) { onError(error); return false }
 }

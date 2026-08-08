@@ -1,7 +1,7 @@
 <template>
   <BaseContainer
     class="devices-container"
-    title="设备总览"
+    title="弧温监测"
     v-model:box="selectedBox"
     :boxes="deviceStatus"
   >

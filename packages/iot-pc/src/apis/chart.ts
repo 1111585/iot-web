@@ -42,7 +42,8 @@ const common = {
   setIotDeviceAlarmThreshold: '/iotDevice/device/setIotDeviceAlarmThreshold',
   // TC 三相电流
   getTcDeviceList: '/tc/device/list',
-  getTcDeviceRecords: '/tc/device/records'
+  getTcDeviceRecords: '/tc/device/records',
+  updateTcConfig: '/tc/device/config'
 }
 
 export const chartApi = {
