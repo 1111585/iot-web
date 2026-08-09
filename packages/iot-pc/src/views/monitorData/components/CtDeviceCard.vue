@@ -74,7 +74,7 @@ const phases = computed(() => {
 <style scoped lang="scss">
 .ct-card {
   --card-w: 260px;
-  --card-h: 200px;
+  --card-h: 185px;
   --card-padding: 12px;
   --section-gap: 12px;
   --menu-size: 32px;
@@ -130,7 +130,7 @@ const phases = computed(() => {
 }
 
 .side-menu {
-  display: flex; flex-direction: column; gap: 6px;
+  display: flex; flex-direction: column; gap: 12px;
   padding-right: 12px; border-right: 1px solid #cdd9e2;
 
   .menu-btn {
