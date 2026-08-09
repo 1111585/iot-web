@@ -40,10 +40,10 @@ const common = {
   getIotSevenDays: '/iotDevice/device/getDeviceCountWeekDateById',
   getIotOneDay: '/iotDevice/device/getDeviceCountDayDateById',
   setIotDeviceAlarmThreshold: '/iotDevice/device/setIotDeviceAlarmThreshold',
-  // TC 三相电流
-  getTcDeviceList: '/tc/device/list',
-  getTcDeviceRecords: '/tc/device/records',
-  updateTcConfig: '/tc/device/config'
+  // CT 三相电流
+  getCtDeviceList: '/ct/device/list',
+  getCtDeviceRecords: '/ct/device/records',
+  updateCtConfig: '/ct/device/config'
 }
 
 export const chartApi = {

@@ -1,8 +1,10 @@
 import { request } from '@/util/request'
 import { chartApi } from '@/apis/chart'
-import type { TcDeviceRes, TcRecordRes } from '../types'
+import { AuthUtil } from '@infoview/util'
+import { generateSignatureSm } from '@/util/crypto/tools'
+import type { CtDeviceRes, CtRecordRes } from '../types'
 
-const onError = (error: any) => console.log('[获取TC数据]', error?.message)
+const onError = (error: any) => console.log('[获取CT数据]', error?.message)
 
 export const iotCollQuery = reactive({
   pageSize: 20,
@@ -10,12 +12,12 @@ export const iotCollQuery = reactive({
   keyword: ''
 })
 
-export const iotCollList = ref<TcDeviceRes[]>([])
+export const iotCollList = ref<CtDeviceRes[]>([])
 export const iotCollTotal = ref(0)
 
-export async function fetchTcDeviceList() {
+export async function fetchCtDeviceList() {
   try {
-    const { data } = await request.get<any, TcDeviceRes[]>(chartApi.getTcDeviceList)
+    const { data } = await request.get<any, CtDeviceRes[]>(chartApi.getCtDeviceList)
     if (data) {
       iotCollList.value = data
       iotCollTotal.value = data.length
@@ -26,9 +28,9 @@ export async function fetchTcDeviceList() {
   }
 }
 
-export async function fetchTcRecords(deviceId: string, days: number = 7) {
+export async function fetchCtRecords(deviceId: string, days: number = 7) {
   try {
-    const { data } = await request.get<any, TcRecordRes[]>(chartApi.getTcDeviceRecords, {
+    const { data } = await request.get<any, CtRecordRes[]>(chartApi.getCtDeviceRecords, {
       deviceId,
       days
     })
@@ -38,14 +40,24 @@ export async function fetchTcRecords(deviceId: string, days: number = 7) {
   }
 }
 
-export async function updateTcConfig(payload: { deviceId: string; alarmAMax?: number; alarmBMax?: number; alarmCMax?: number; currentRange?: number }) {
+export async function updateCtConfig(payload: { deviceId: string; alarmAMax?: number; alarmBMax?: number; alarmCMax?: number; currentRange?: number }) {
   try {
-    const base = (import.meta as any).env.VITE_APP_BASEURL || ''
-    const res = await fetch(base + '/tc/device/config', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+    const url = chartApi.updateCtConfig
+    const body = JSON.stringify(payload)
+    const { signature, timestamp, nonce } = generateSignatureSm({
+      method: 'POST', url, body
     })
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'X-Signature': signature,
+      'X-Timestamp': timestamp,
+      'X-Nonce': nonce
+    }
+    const token = AuthUtil.getToken()
+    if (token) headers['Authorization'] = token
+
+    const base = (import.meta as any).env.VITE_APP_BASEURL || ''
+    const res = await fetch(base + url, { method: 'POST', headers, body })
     if (!res.ok) throw new Error('请求失败: ' + res.status)
     return true
   } catch (error) { onError(error); return false }

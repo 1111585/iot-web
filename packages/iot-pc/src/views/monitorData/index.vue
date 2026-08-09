@@ -1,5 +1,5 @@
 <template>
-  <BaseContainer class="tc-container" title="三相电流监测" v-model:box="selectedBox" :boxes="statusBoxes">
+  <BaseContainer class="ct-container" title="三相电流监测" v-model:box="selectedBox" :boxes="statusBoxes">
     <template #operation>
       <div class="operation-loading" :class="{ active: isFetching }">
         <el-icon class="is-loading"><Loading /></el-icon>
@@ -34,8 +34,8 @@
     <div v-if="isLoading" class="loading-overlay">
       <el-icon class="is-loading"><Loading /></el-icon>
     </div>
-    <div class="tc-grid">
-      <TcDeviceCard v-for="d in filteredDevices" :key="d.id" :device="d" @chart="onChart" @config="onConfig" />
+    <div class="ct-grid">
+      <CtDeviceCard v-for="d in filteredDevices" :key="d.id" :device="d" @chart="onChart" @config="onConfig" />
       <div v-if="filteredDevices.length === 0" style="width:85vw"><empty /></div>
     </div>
 
@@ -63,10 +63,10 @@ import { onMounted, onUnmounted, reactive, ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Loading, Sort, ArrowDown } from '@element-plus/icons-vue'
 import BaseContainer from '@/components/renderer/BaseContainer.vue'
-import TcDeviceCard from './components/TcDeviceCard.vue'
+import CtDeviceCard from './components/CtDeviceCard.vue'
 import IotChart from './components/IotChart.vue'
-import { fetchTcDeviceList, updateTcConfig, iotCollList } from './utils'
-import type { TcDeviceRes } from './types'
+import { fetchCtDeviceList, updateCtConfig, iotCollList } from './utils'
+import type { CtDeviceRes } from './types'
 
 const isFetching = ref(false)
 const isLoading = ref(true)
@@ -111,7 +111,7 @@ const filteredDevices = computed(() => {
 async function loadData() {
   if (isFetching.value) return
   isFetching.value = true
-  try { await fetchTcDeviceList() } catch(e) { console.error(e) }
+  try { await fetchCtDeviceList() } catch(e) { console.error(e) }
   finally { isFetching.value = false; isLoading.value = false }
 }
 
@@ -124,15 +124,15 @@ const configDialog = reactive({
     const b = f.alarmBMax !== '' ? +f.alarmBMax : undefined
     const c = f.alarmCMax !== '' ? +f.alarmCMax : undefined
     const r = f.currentRange !== '' ? +f.currentRange : undefined
-    const ok = await updateTcConfig({ deviceId: configDialog.deviceId, alarmAMax: a, alarmBMax: b, alarmCMax: c, currentRange: r })
+    const ok = await updateCtConfig({ deviceId: configDialog.deviceId, alarmAMax: a, alarmBMax: b, alarmCMax: c, currentRange: r })
     if (ok) { configDialog.visible = false; ElMessage.success('设置已保存'); loadData() }
     else { ElMessage.error('保存失败') }
   }
 })
 
 const chartDialog = reactive({ visible: false, title: '', deviceId: '' })
-function onChart(d: TcDeviceRes) { chartDialog.visible = true; chartDialog.title = d.deviceName + ' - 三相电流趋势图'; chartDialog.deviceId = d.id }
-function onConfig(d: TcDeviceRes) {
+function onChart(d: CtDeviceRes) { chartDialog.visible = true; chartDialog.title = d.deviceName + ' - 三相电流趋势图'; chartDialog.deviceId = d.id }
+function onConfig(d: CtDeviceRes) {
   configDialog.visible = true; configDialog.deviceId = d.id
   configDialog.form.alarmAMax = d.alarmAMax ?? ''; configDialog.form.alarmBMax = d.alarmBMax ?? ''
   configDialog.form.alarmCMax = d.alarmCMax ?? ''; configDialog.form.currentRange = d.currentRange ?? '100'
@@ -143,7 +143,7 @@ onUnmounted(() => { if (pollTimer) clearInterval(pollTimer) })
 </script>
 
 <style lang="scss" scoped>
-.tc-container { .tc-grid { display: grid; grid-template-columns: repeat(auto-fill, 260px); gap: 24px;
+.ct-container { .ct-grid { display: grid; grid-template-columns: repeat(auto-fill, 260px); gap: 24px;
   grid-auto-flow: row; padding: 16px 10px 30px; justify-content: flex-start; } }
 .sort-controls {
   margin-left: auto;

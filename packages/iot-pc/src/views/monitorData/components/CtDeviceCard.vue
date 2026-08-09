@@ -1,5 +1,5 @@
 <template>
-  <div class="tc-card" :class="{ 'is-offline': device.onlineState !== 1 }">
+  <div class="ct-card" :class="{ 'is-offline': device.onlineState !== 1 }">
     <div class="card-header">
       <div class="status-dot" :class="device.onlineState === 1 ? 'online' : 'offline'"></div>
       <span class="device-name" :title="device.deviceName">{{ device.deviceName }}</span>
@@ -44,15 +44,15 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { TcDeviceRes } from '../types'
+import type { CtDeviceRes } from '../types'
 
 const props = defineProps<{
-  device: TcDeviceRes & { warnCounts?: number }
+  device: CtDeviceRes & { warnCounts?: number }
 }>()
 
 defineEmits<{
-  (e: 'chart', device: TcDeviceRes): void
-  (e: 'config', device: TcDeviceRes): void
+  (e: 'chart', device: CtDeviceRes): void
+  (e: 'config', device: CtDeviceRes): void
 }>()
 
 const phases = computed(() => {
@@ -71,7 +71,7 @@ const phases = computed(() => {
 </script>
 
 <style scoped lang="scss">
-.tc-card {
+.ct-card {
   --card-w: 260px;
   --card-h: 170px;
   --card-padding: 12px;

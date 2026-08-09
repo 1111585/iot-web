@@ -1,4 +1,4 @@
-export interface TcDeviceRes {
+export interface CtDeviceRes {
   id: string
   deviceName: string
   ip: string
@@ -15,9 +15,12 @@ export interface TcDeviceRes {
   createTime: string | null
 }
 
-export interface TcRecordRes {
+export interface CtRecordRes {
   currentA: number
   currentB: number
   currentC: number
+  maxCurrentA?: number
+  maxCurrentB?: number
+  maxCurrentC?: number
   collectTime: string
 }

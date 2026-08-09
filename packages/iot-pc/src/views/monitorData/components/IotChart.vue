@@ -14,7 +14,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, watch, computed } from 'vue'
 import { Line } from '@antv/g2plot'
-import { fetchTcRecords } from '../utils'
+import { fetchCtRecords } from '../utils'
 
 interface Props {
   title?: string
@@ -33,7 +33,7 @@ async function fetching() {
   if (!props.deviceId) return
   try {
     const days = timeRange.value === 'week' ? 7 : 1
-    const result = await fetchTcRecords(props.deviceId, days)
+    const result = await fetchCtRecords(props.deviceId, days)
     if (result?.raw && result.raw.length > 0) {
       isEmpty.value = false
       chartData.value = result.raw.flatMap((item: any) => {
