@@ -5,13 +5,37 @@
         <el-icon class="is-loading"><Loading /></el-icon>
         <span class="loading-text">加载中…</span>
       </div>
+      <div class="sort-controls">
+        <el-dropdown trigger="click" @command="handleSortCommand">
+          <el-button size="small" class="win-sort-btn">
+            <el-icon><Sort /></el-icon>
+            <span class="btn-text">排序</span>
+            <el-icon class="el-icon--right" size="12"><ArrowDown /></el-icon>
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu class="win-sort-menu">
+              <el-dropdown-item command="field:name" :class="{ 'is-selected': sortField === 'name' }">
+                <span class="dot-icon"></span>名称
+              </el-dropdown-item>
+              <el-dropdown-item command="field:time" :class="{ 'is-selected': sortField === 'time' }">
+                <span class="dot-icon"></span>时间
+              </el-dropdown-item>
+              <el-dropdown-item divided command="order:asc" :class="{ 'is-selected': sortOrder === 'asc' }">
+                <span class="dot-icon"></span>递增
+              </el-dropdown-item>
+              <el-dropdown-item command="order:desc" :class="{ 'is-selected': sortOrder === 'desc' }">
+                <span class="dot-icon"></span>递减
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </div>
     </template>
     <div v-if="isLoading" class="loading-overlay">
       <el-icon class="is-loading"><Loading /></el-icon>
     </div>
     <div class="tc-grid">
-      <TcDeviceCard v-for="d in filteredDevices" :key="d.id" :device="d"
-        @chart="onChart" @config="onConfig" />
+      <TcDeviceCard v-for="d in filteredDevices" :key="d.id" :device="d" @chart="onChart" @config="onConfig" />
       <div v-if="filteredDevices.length === 0" style="width:85vw"><empty /></div>
     </div>
 
@@ -37,7 +61,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, reactive, ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Loading } from '@element-plus/icons-vue'
+import { Loading, Sort, ArrowDown } from '@element-plus/icons-vue'
 import BaseContainer from '@/components/renderer/BaseContainer.vue'
 import TcDeviceCard from './components/TcDeviceCard.vue'
 import IotChart from './components/IotChart.vue'
@@ -50,6 +74,9 @@ const POLL_INTERVAL = 2000
 let pollTimer: ReturnType<typeof setInterval> | null = null
 
 const selectedBox = ref('total')
+const sortField = ref<'name' | 'time'>('name')
+const sortOrder = ref<'asc' | 'desc'>('asc')
+
 const statusBoxes = computed(() => {
   const list = iotCollList.value
   const online = list.filter(d => d.onlineState === 1).length
@@ -60,10 +87,25 @@ const statusBoxes = computed(() => {
   ]
 })
 
+const handleSortCommand = (command: string) => {
+  const [type, value] = command.split(':')
+  if (type === 'field') sortField.value = value as 'name' | 'time'
+  else if (type === 'order') sortOrder.value = value as 'asc' | 'desc'
+}
+
 const filteredDevices = computed(() => {
-  if (selectedBox.value === 'total') return iotCollList.value
-  const online = selectedBox.value === 'online' ? 1 : 0
-  return iotCollList.value.filter(d => d.onlineState === online)
+  let list = iotCollList.value
+  if (selectedBox.value === 'online') list = list.filter(d => d.onlineState === 1)
+  else if (selectedBox.value === 'offline') list = list.filter(d => d.onlineState !== 1)
+  const locale = 'zh-Hans-CN'
+  const rev = sortOrder.value === 'desc' ? -1 : 1
+  return [...list].sort((a, b) => {
+    if (sortField.value === 'name')
+      return (a.deviceName || '').localeCompare(b.deviceName || '', locale) * rev
+    const aTime = new Date(a.createTime || 0).getTime()
+    const bTime = new Date(b.createTime || 0).getTime()
+    return (aTime - bTime) * rev
+  })
 })
 
 async function loadData() {
@@ -89,7 +131,6 @@ const configDialog = reactive({
 })
 
 const chartDialog = reactive({ visible: false, title: '', deviceId: '' })
-
 function onChart(d: TcDeviceRes) { chartDialog.visible = true; chartDialog.title = d.deviceName + ' - 三相电流趋势图'; chartDialog.deviceId = d.id }
 function onConfig(d: TcDeviceRes) {
   configDialog.visible = true; configDialog.deviceId = d.id
@@ -104,6 +145,84 @@ onUnmounted(() => { if (pollTimer) clearInterval(pollTimer) })
 <style lang="scss" scoped>
 .tc-container { .tc-grid { display: grid; grid-template-columns: repeat(auto-fill, 260px); gap: 24px;
   grid-auto-flow: row; padding: 16px 10px 30px; justify-content: flex-start; } }
+.sort-controls {
+  margin-left: auto;
+  .el-button {
+    border: none !important;
+    &:hover {
+      background: #f3f3f3 !important;
+      color: #000 !important;
+    }
+  }
+}
+
+.win-sort-btn {
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  height: 32px;
+  border-radius: 4px;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #e5e5e5;
+    color: #000;
+  }
+
+  .btn-text {
+    font-size: 13px;
+    margin: 0 4px;
+  }
+
+  .el-icon {
+    font-size: 14px;
+  }
+}
+
+.win-sort-menu {
+  padding: 4px 0;
+  min-width: 140px;
+
+  :deep(.el-dropdown-menu__item) {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    font-size: 13px;
+    position: relative;
+    padding-left: 32px;
+
+    .dot-icon {
+      position: absolute;
+      left: 12px;
+      width: 4px;
+      height: 4px;
+      background: transparent;
+      border-radius: 50%;
+    }
+
+    &.is-selected {
+      background-color: transparent !important;
+      color: inherit;
+
+      .dot-icon {
+        background: #333;
+      }
+    }
+
+    &:hover {
+      background-color: #f0f0f0 !important;
+    }
+
+    &.el-dropdown-menu__item--divided {
+      margin-top: 4px;
+      &::before {
+        margin: 0 4px;
+      }
+    }
+  }
+}
 .loading-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 32px; color: #409eff; }
 .operation-loading { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #999; opacity: 0; transition: opacity .3s;
   &.active { opacity: 1; } }

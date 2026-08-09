@@ -12,6 +12,7 @@ export interface TcDeviceRes {
   alarmBMax: number | null
   alarmCMax: number | null
   currentRange: number
+  createTime: string | null
 }
 
 export interface TcRecordRes {
