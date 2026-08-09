@@ -44,6 +44,7 @@
         <el-form-item label="A相阈值(A)"><el-input v-model="configDialog.form.alarmAMax" type="number" step="any" /></el-form-item>
         <el-form-item label="B相阈值(A)"><el-input v-model="configDialog.form.alarmBMax" type="number" step="any" /></el-form-item>
         <el-form-item label="C相阈值(A)"><el-input v-model="configDialog.form.alarmCMax" type="number" step="any" /></el-form-item>
+        <el-form-item label="O相阈值(A)"><el-input v-model="configDialog.form.alarmOMax" type="number" step="any" /></el-form-item>
         <el-form-item label="进度条量程(A)"><el-input v-model="configDialog.form.currentRange" type="number" step="any" /></el-form-item>
       </el-form>
       <template #footer>
@@ -117,25 +118,26 @@ async function loadData() {
 
 const configDialog = reactive({
   visible: false, deviceId: '',
-  form: { alarmAMax: '', alarmBMax: '', alarmCMax: '', currentRange: '100' },
+  form: { alarmAMax: '', alarmBMax: '', alarmCMax: '', alarmOMax: '', currentRange: '100' },
   async submit() {
     const f = configDialog.form
     const a = f.alarmAMax !== '' ? +f.alarmAMax : undefined
     const b = f.alarmBMax !== '' ? +f.alarmBMax : undefined
     const c = f.alarmCMax !== '' ? +f.alarmCMax : undefined
+    const o = f.alarmOMax !== '' ? +f.alarmOMax : undefined
     const r = f.currentRange !== '' ? +f.currentRange : undefined
-    const ok = await updateCtConfig({ deviceId: configDialog.deviceId, alarmAMax: a, alarmBMax: b, alarmCMax: c, currentRange: r })
+    const ok = await updateCtConfig({ deviceId: configDialog.deviceId, alarmAMax: a, alarmBMax: b, alarmCMax: c, alarmOMax: o, currentRange: r })
     if (ok) { configDialog.visible = false; ElMessage.success('设置已保存'); loadData() }
     else { ElMessage.error('保存失败') }
   }
 })
 
 const chartDialog = reactive({ visible: false, title: '', deviceId: '' })
-function onChart(d: CtDeviceRes) { chartDialog.visible = true; chartDialog.title = d.deviceName + ' - 三相电流趋势图'; chartDialog.deviceId = d.id }
+function onChart(d: CtDeviceRes) { chartDialog.visible = true; chartDialog.title = d.deviceName + ' - 四相电流趋势图'; chartDialog.deviceId = d.id }
 function onConfig(d: CtDeviceRes) {
   configDialog.visible = true; configDialog.deviceId = d.id
   configDialog.form.alarmAMax = d.alarmAMax ?? ''; configDialog.form.alarmBMax = d.alarmBMax ?? ''
-  configDialog.form.alarmCMax = d.alarmCMax ?? ''; configDialog.form.currentRange = d.currentRange ?? '100'
+  configDialog.form.alarmCMax = d.alarmCMax ?? ''; configDialog.form.alarmOMax = d.alarmOMax ?? ''; configDialog.form.currentRange = d.currentRange ?? '100'
 }
 
 onMounted(() => { loadData(); pollTimer = setInterval(loadData, POLL_INTERVAL) })

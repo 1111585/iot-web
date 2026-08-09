@@ -60,7 +60,8 @@ const phases = computed(() => {
   return [
     { label: 'A相', value: props.device.currentA || 0, threshold: props.device.alarmAMax, range },
     { label: 'B相', value: props.device.currentB || 0, threshold: props.device.alarmBMax, range },
-    { label: 'C相', value: props.device.currentC || 0, threshold: props.device.alarmCMax, range }
+    { label: 'C相', value: props.device.currentC || 0, threshold: props.device.alarmCMax, range },
+    { label: 'O相', value: props.device.currentO || 0, threshold: props.device.alarmOMax, range }
   ].map(p => {
     const overThreshold = p.threshold != null && p.threshold > 0 && p.value > p.threshold
     const percent = Math.min((p.value / p.range) * 100, 100)
@@ -73,7 +74,7 @@ const phases = computed(() => {
 <style scoped lang="scss">
 .ct-card {
   --card-w: 260px;
-  --card-h: 170px;
+  --card-h: 200px;
   --card-padding: 12px;
   --section-gap: 12px;
   --menu-size: 32px;

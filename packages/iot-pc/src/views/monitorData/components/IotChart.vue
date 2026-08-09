@@ -41,7 +41,8 @@ async function fetching() {
         return [
           { date: ts, type: 'A相', value: item.currentA ?? 0 },
           { date: ts, type: 'B相', value: item.currentB ?? 0 },
-          { date: ts, type: 'C相', value: item.currentC ?? 0 }
+          { date: ts, type: 'C相', value: item.currentC ?? 0 },
+          { date: ts, type: 'O相', value: item.currentO ?? 0 }
         ]
       })
     } else {
@@ -62,7 +63,7 @@ function initChart() {
     data: chartData.value, xField: 'date', yField: 'value', seriesField: 'type',
     smooth: true, yAxis: { min: 0 },
     legend: { position: 'bottom' },
-    color: ['#F56C6C', '#67C23A', '#409EFF'],
+    color: ['#F56C6C', '#67C23A', '#409EFF', '#E6A23C'],
     point: { size: 3 }
   })
   tempLineChart.value.render()

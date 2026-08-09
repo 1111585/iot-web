@@ -8,9 +8,11 @@ export interface CtDeviceRes {
   currentA: number
   currentB: number
   currentC: number
+  currentO: number
   alarmAMax: number | null
   alarmBMax: number | null
   alarmCMax: number | null
+  alarmOMax: number | null
   currentRange: number
   createTime: string | null
 }
@@ -19,8 +21,10 @@ export interface CtRecordRes {
   currentA: number
   currentB: number
   currentC: number
+  currentO: number
   maxCurrentA?: number
   maxCurrentB?: number
   maxCurrentC?: number
+  maxCurrentO?: number
   collectTime: string
 }
