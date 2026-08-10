@@ -1,5 +1,5 @@
 <template>
-  <BaseContainer class="ct-container" title="三相电流监测" v-model:box="selectedBox" :boxes="statusBoxes">
+  <BaseContainer class="ct-container" title="四相电流监测" v-model:box="selectedBox" :boxes="statusBoxes">
     <template #operation>
       <div class="operation-loading" :class="{ active: isFetching }">
         <el-icon class="is-loading"><Loading /></el-icon>
@@ -39,13 +39,14 @@
       <div v-if="filteredDevices.length === 0" style="width:85vw"><empty /></div>
     </div>
 
-    <el-dialog v-model="configDialog.visible" title="设置告警阈值 & 量程" width="460px" destroy-on-close>
+    <el-dialog v-model="configDialog.visible" title="设置" width="460px" destroy-on-close>
       <el-form :model="configDialog.form" label-width="110px">
         <el-form-item label="A相阈值(A)"><el-input v-model="configDialog.form.alarmAMax" type="number" step="any" /></el-form-item>
         <el-form-item label="B相阈值(A)"><el-input v-model="configDialog.form.alarmBMax" type="number" step="any" /></el-form-item>
         <el-form-item label="C相阈值(A)"><el-input v-model="configDialog.form.alarmCMax" type="number" step="any" /></el-form-item>
         <el-form-item label="O相阈值(A)"><el-input v-model="configDialog.form.alarmOMax" type="number" step="any" /></el-form-item>
         <el-form-item label="进度条量程(A)"><el-input v-model="configDialog.form.currentRange" type="number" step="any" /></el-form-item>
+        <el-form-item label="冷却时间(秒)"><el-input v-model="configDialog.form.alarmCooldown" type="number" step="any" /></el-form-item>
       </el-form>
       <template #footer>
         <el-button type="primary" @click="configDialog.submit">确定</el-button>
@@ -118,7 +119,7 @@ async function loadData() {
 
 const configDialog = reactive({
   visible: false, deviceId: '',
-  form: { alarmAMax: '', alarmBMax: '', alarmCMax: '', alarmOMax: '', currentRange: '100' },
+  form: { alarmAMax: '', alarmBMax: '', alarmCMax: '', alarmOMax: '', currentRange: '100', alarmCooldown: '60' },
   async submit() {
     const f = configDialog.form
     const a = f.alarmAMax !== '' ? +f.alarmAMax : undefined
@@ -126,7 +127,8 @@ const configDialog = reactive({
     const c = f.alarmCMax !== '' ? +f.alarmCMax : undefined
     const o = f.alarmOMax !== '' ? +f.alarmOMax : undefined
     const r = f.currentRange !== '' ? +f.currentRange : undefined
-    const ok = await updateCtConfig({ deviceId: configDialog.deviceId, alarmAMax: a, alarmBMax: b, alarmCMax: c, alarmOMax: o, currentRange: r })
+    const cd = f.alarmCooldown !== '' ? +f.alarmCooldown : undefined
+    const ok = await updateCtConfig({ deviceId: configDialog.deviceId, alarmAMax: a, alarmBMax: b, alarmCMax: c, alarmOMax: o, currentRange: r, alarmCooldown: cd })
     if (ok) { configDialog.visible = false; ElMessage.success('设置已保存'); loadData() }
     else { ElMessage.error('保存失败') }
   }
@@ -138,6 +140,7 @@ function onConfig(d: CtDeviceRes) {
   configDialog.visible = true; configDialog.deviceId = d.id
   configDialog.form.alarmAMax = d.alarmAMax ?? ''; configDialog.form.alarmBMax = d.alarmBMax ?? ''
   configDialog.form.alarmCMax = d.alarmCMax ?? ''; configDialog.form.alarmOMax = d.alarmOMax ?? ''; configDialog.form.currentRange = d.currentRange ?? '100'
+  configDialog.form.alarmCooldown = d.alarmCooldown ?? '60'
 }
 
 onMounted(() => { loadData(); pollTimer = setInterval(loadData, POLL_INTERVAL) })

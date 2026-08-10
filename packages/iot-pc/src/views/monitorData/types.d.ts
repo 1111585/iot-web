@@ -14,6 +14,7 @@ export interface CtDeviceRes {
   alarmCMax: number | null
   alarmOMax: number | null
   currentRange: number
+  alarmCooldown: number
   createTime: string | null
 }
 

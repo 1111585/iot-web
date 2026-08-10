@@ -12,7 +12,7 @@
         <div class="menu-btn" @click="$emit('chart', device)" title="趋势图">
           <svg-icon icon-class="line_chart" size="18px" />
         </div>
-        <div class="menu-btn" @click="$emit('config', device)" title="阈值设置">
+        <div class="menu-btn" @click="$emit('config', device)" title="设置">
           <svg-icon icon-class="info2" size="18px" />
         </div>
       </div>
@@ -82,7 +82,7 @@ const phases = computed(() => {
   position: relative;
   width: var(--card-w);
   min-height: var(--card-h); height: auto;
-  background: #dee8ee;
+  background: #f0f7f9;
   border-radius: 8px;
   padding: var(--card-padding);
   display: flex;

@@ -40,7 +40,7 @@ export async function fetchCtRecords(deviceId: string, days: number = 7) {
   }
 }
 
-export async function updateCtConfig(payload: { deviceId: string; alarmAMax?: number; alarmBMax?: number; alarmCMax?: number; currentRange?: number }) {
+export async function updateCtConfig(payload: { deviceId: string; alarmAMax?: number; alarmBMax?: number; alarmCMax?: number; alarmOMax?: number; currentRange?: number; alarmCooldown?: number }) {
   try {
     const url = chartApi.updateCtConfig
     const body = JSON.stringify(payload)
