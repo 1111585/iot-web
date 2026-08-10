@@ -43,6 +43,7 @@ const common = {
   // CT 三相电流
   getCtDeviceList: '/ct/device/list',
   getCtDeviceRecords: '/ct/device/records',
+  getAlarmDetail: '/ct/device/alarm-detail',
   updateCtConfig: '/ct/device/config'
 }
 

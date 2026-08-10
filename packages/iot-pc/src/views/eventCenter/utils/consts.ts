@@ -2,10 +2,7 @@ export enum EventType {
   '电弧闪络' = 1,
   '超温事件（一级）' = 2,
   '超温事件（二级）' = 3,
-  'Modbus阈值告警一级' = 4,
-  'Modbus阈值告警二级' = 5,
-  'Modbus阈值告警三级' = 6,
-  'Modbus趋势告警' = 7
+  'CT过流' = 4
 }
 
 export enum EventStatus {
@@ -36,7 +33,8 @@ export const eventCenterTag = ref([
       { title: '全部', value: '0' },
       { title: '电弧闪络', value: '1' },
       { title: '超温事件（一级）', value: '2' },
-      { title: '超温事件（二级）', value: '3' }
+      { title: '超温事件（二级）', value: '3' },
+      { title: 'CT过流', value: '4' }
     ]
   }
 ])

@@ -1,9 +1,21 @@
 <template>
   <div class="arc-detail">
     <el-row :gutter="24">
-      <el-col :span="12">
-        <!-- 媒体预览卡片 -->
-        <el-card class="preview-card">
+      <el-col :span="16">
+        <!-- CT 告警：电流趋势图 -->
+        <el-card v-if="isCTLevel" class="preview-card">
+          <template #header>
+            <div class="card-header"><span class="card-title">告警曲线</span></div>
+          </template>
+          <AlarmChart v-if="ctInfo.deviceId"
+            :device-id="ctInfo.deviceId"
+            :warning-id="props.data.id as number"
+            :threshold="ctInfo.threshold"
+            :trigger-time="ctInfo.triggerTime"
+            :trigger-phase="ctInfo.phase" />
+        </el-card>
+        <!-- 弧温告警：媒体预览 -->
+        <el-card v-else class="preview-card">
           <template #header>
             <div class="card-header">
               <span class="card-title">媒体预览</span>
@@ -18,8 +30,8 @@
                 :auto="mediaCapture.enable"
                 :interval="2"
                 autoplay
-                width="240"
-                height="180"
+                width="320"
+                height="240"
               />
             </el-col>
             <el-col :span="12">
@@ -56,9 +68,29 @@
           </el-row>
         </el-card>
       </el-col>
-      <el-col :span="12">
-        <!-- 基本信息卡片 -->
-        <el-card class="info-card">
+      <el-col :span="8">
+        <div class="right-panel">
+        <!-- CT 告警专用信息 -->
+        <el-card v-if="isCTLevel" class="info-card">
+          <div class="info-header">
+            <div class="info-title">
+              <span class="label">事件类型：</span><span class="value">{{ info.eventType }}</span>
+            </div>
+            <div class="info-status">
+              <el-tag :type="info.status === '已处理' ? 'success' : 'warning'">{{ info.status }}</el-tag>
+            </div>
+          </div>
+          <div class="info-content">
+            <div class="info-item"><span class="label">设备名称：</span><span class="value">{{ ctInfo.deviceName }}</span></div>
+            <div class="info-item"><span class="label">设备地址：</span><span class="value">{{ ctInfo.ip }}</span></div>
+            <div class="info-item"><span class="label">触发相位：</span><span class="value" style="font-weight:600">{{ ctInfo.phase }}相</span></div>
+            <div class="info-item"><span class="label">触发电流：</span><span class="value" style="color:#fe3246;font-weight:600">{{ ctInfo.value }}A</span></div>
+            <div class="info-item"><span class="label">告警阈值：</span><span class="value">{{ ctInfo.threshold }}A</span></div>
+            <div class="info-item"><span class="label">持续时间：</span><span class="value">-</span></div>
+          </div>
+        </el-card>
+        <!-- 弧温告警专用信息 -->
+        <el-card v-else class="info-card">
           <div class="info-header">
             <div class="info-title">
               <span class="label">事件类型：</span>
@@ -145,6 +177,7 @@
             </el-timeline-item>
           </el-timeline>
         </el-card>
+        </div>
       </el-col>
     </el-row>
     <FormDialog
@@ -186,6 +219,8 @@
 import DeviceDetail from '@/views/deviceManage/detail/DeviceDetail.vue'
 import VideoFrameCapture from '@/components/media/VideoFrameCapture.vue'
 import PicDrawer from '@/components/drawing/PicDrawer.vue'
+import IotChart from '@/views/monitorData/components/IotChart.vue'
+import AlarmChart from './AlarmChart.vue'
 import { useConfigStore } from '@/store/config'
 import { Columns } from '@/components/renderer'
 import { request } from '@/util/request'
@@ -202,6 +237,29 @@ interface Props {
 
 const props = defineProps<Props>()
 const configStore = useConfigStore()
+
+// CT 告警 levelType === 4
+const isCTLevel = computed(() => props.data?.typeRaw === 4)
+
+// 解析 warningContent JSON，提取 CT 告警字段
+const ctInfo = computed(() => {
+  try {
+    const content = info.value.warningContent
+    if (!content) return {}
+    const raw = typeof content === 'string' ? JSON.parse(content) : content
+    return {
+      phase: raw.phase || '-',
+      value: raw.value != null ? Number(raw.value).toFixed(2) : '-',
+      threshold: raw.threshold ?? '-',
+      deviceId: raw.deviceId || '',
+      deviceName: raw.deviceName || '-',
+      ip: raw.ip || '-',
+      triggerTime: raw.triggerTime || 0
+    }
+  } catch {
+    return { phase: '-', value: '-', threshold: '-', deviceId: '', deviceName: '-', ip: '-', triggerTime: 0 }
+  }
+})
 
 const isShow = reactive({
   tour: false
@@ -234,7 +292,8 @@ const info = ref({
   sensorDevice: '',
   videoUrl: '',
   pictureUrl: '',
-  warningTime: ''
+  warningTime: '',
+  warningContent: ''
 })
 // 左边的预览媒体
 const previewFrame = ref({
@@ -403,13 +462,30 @@ $card-width: 250px;
       }
     }
     .media-image {
-      width: $card-width;
-      height: 200px;
+      width: 320px;
+      height: 240px;
       border-radius: 8px;
     }
     .media-video {
       width: $card-width;
       height: 200px;
+    }
+  }
+
+  .right-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+
+    .info-card {
+      flex-shrink: 0;
+      margin-bottom: 20px;
+    }
+
+    .timeline-card {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
     }
   }
 
@@ -430,7 +506,7 @@ $card-width: 250px;
 
     .info-content {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: 1fr;
       gap: 16px;
 
       .info-item {
@@ -452,7 +528,6 @@ $card-width: 250px;
   }
 
   .timeline-card {
-    min-height: 52vh;
     .card-header {
       font-weight: bold;
     }

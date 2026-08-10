@@ -33,7 +33,11 @@
           <!-- v-if="data.handleStatus != 1" -->
           {{ EventStatus[data.disposeType] }}
         </div>
-        <el-image class="card-img" loading="lazy" :src="data.image" fit="cover" />
+        <el-image v-if="data.image" class="card-img" loading="lazy" :src="data.image" fit="cover" />
+        <div v-else class="card-img-placeholder">
+          <span v-if="data.typeRaw === 4" class="ct-label">CT</span>
+          <span v-else class="no-img-text">无图像</span>
+        </div>
       </div>
     </div>
   </el-card>
@@ -109,6 +113,25 @@ const statusColor = {
   right: 14px;
   top: 50%;
   transform: translateY(-50%);
+}
+.card-img-placeholder {
+  width: 30%;
+  aspect-ratio: 6 / 7;
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed #dcdfe6;
+  border-radius: 8px;
+  .ct-label {
+    font-size: 28px; font-weight: 700; color: #409eff;
+  }
+  .no-img-text {
+    font-size: 12px; color: #c0c4cc;
+  }
 }
 .card-tag {
   position: absolute;

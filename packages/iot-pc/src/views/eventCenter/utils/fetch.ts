@@ -95,7 +95,8 @@ export async function fetchEventDetail(id: ARC.SN) {
       monitorDeviceId: _base.monitoringDeviceId,
       videoUrl: _base.videoUrl,
       pictureUrl: _base.picturePath,
-      warningTime: _base.warningTime
+      warningTime: _base.warningTime,
+      warningContent: _base.warningContent
     }
 
     const activities = _list.map((item) => ({
