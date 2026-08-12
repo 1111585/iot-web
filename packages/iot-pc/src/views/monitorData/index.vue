@@ -72,7 +72,7 @@ import type { CtDeviceRes } from './types'
 
 const isFetching = ref(false)
 const isLoading = ref(true)
-const POLL_INTERVAL = 2000
+const POLL_INTERVAL = 1000
 let pollTimer: ReturnType<typeof setInterval> | null = null
 
 const selectedBox = ref('total')

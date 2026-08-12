@@ -37,7 +37,7 @@
     </div>
     <div class="card-footer">
       <span class="footer-ip">{{ device.ip }}</span>
-      <span class="footer-time">{{ device.lastCollectTime || '暂无数据' }}</span>
+      <span class="footer-time">{{ timeDisplay }}</span>
     </div>
   </div>
 </template>
@@ -68,6 +68,18 @@ const phases = computed(() => {
     const bgColor = overThreshold ? '#fe3246' : '#67c23a'
     return { ...p, percent, overThreshold, barStyle: { width: percent + '%', backgroundColor: bgColor } }
   })
+})
+
+const timeDisplay = computed(() => {
+  const t = props.device.lastCollectTime
+  if (!t) return '暂无数据'
+  const d = new Date(t)
+  const mm = (d.getMonth() + 1).toString().padStart(2, '0')
+  const dd = d.getDate().toString().padStart(2, '0')
+  const hh = d.getHours().toString().padStart(2, '0')
+  const mi = d.getMinutes().toString().padStart(2, '0')
+  const fps = props.device.currentFps != null ? props.device.currentFps.toFixed(1) : '0.0'
+  return `${mm}-${dd} ${hh}:${mi} | FPS ${fps}`
 })
 </script>
 
