@@ -104,7 +104,7 @@ function render(points: AlarmPoint[]) {
     xField: 'time',
     yField: 'value',
     seriesField: 'type',
-    color: ['#fe3246', '#4ecb73', '#2b8cff', '#fa8c16'],
+    color: ['#E6A23C', '#67C23A', '#F56C6C', '#409EFF'],
     smooth: true,
     height: 280,
     padding: [30, 20, 40, 60],

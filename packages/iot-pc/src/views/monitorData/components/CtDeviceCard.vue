@@ -28,7 +28,7 @@
               <div v-if="p.threshold && p.range > 0" class="threshold-mark"
                 :style="{ left: (p.threshold / p.range * 100) + '%' }"></div>
             </div>
-            <span class="row-value" :style="{ color: p.overThreshold ? '#fe3246' : '#67c23a' }">
+            <span class="row-value" :style="{ color: p.overThreshold ? '#F56C6C' : '#67c23a' }">
               {{ p.value.toFixed(3) }}A
             </span>
           </div>
@@ -57,15 +57,16 @@ defineEmits<{
 
 const phases = computed(() => {
   const range = props.device.currentRange || 100
+  const pc = ['#E6A23C', '#67C23A', '#F56C6C', '#409EFF']
   return [
-    { label: 'A相', value: props.device.currentA || 0, threshold: props.device.alarmAMax, range },
-    { label: 'B相', value: props.device.currentB || 0, threshold: props.device.alarmBMax, range },
-    { label: 'C相', value: props.device.currentC || 0, threshold: props.device.alarmCMax, range },
-    { label: 'O相', value: props.device.currentO || 0, threshold: props.device.alarmOMax, range }
+    { label: 'A相', color: pc[0], value: props.device.currentA || 0, threshold: props.device.alarmAMax, range },
+    { label: 'B相', color: pc[1], value: props.device.currentB || 0, threshold: props.device.alarmBMax, range },
+    { label: 'C相', color: pc[2], value: props.device.currentC || 0, threshold: props.device.alarmCMax, range },
+    { label: 'O相', color: pc[3], value: props.device.currentO || 0, threshold: props.device.alarmOMax, range }
   ].map(p => {
     const overThreshold = p.threshold != null && p.threshold > 0 && p.value > p.threshold
     const percent = Math.min((p.value / p.range) * 100, 100)
-    const bgColor = overThreshold ? '#fe3246' : '#67c23a'
+    const bgColor = overThreshold ? '#F56C6C' : '#67C23A'
     return { ...p, percent, overThreshold, barStyle: { width: percent + '%', backgroundColor: bgColor } }
   })
 })

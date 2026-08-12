@@ -63,7 +63,7 @@ function initChart() {
     data: chartData.value, xField: 'date', yField: 'value', seriesField: 'type',
     smooth: true, yAxis: { min: 0 },
     legend: { position: 'bottom' },
-    color: ['#F56C6C', '#67C23A', '#409EFF', '#E6A23C'],
+    color: ['#E6A23C', '#67C23A', '#F56C6C', '#409EFF'],
     point: { size: 3 }
   })
   tempLineChart.value.render()
