@@ -28,11 +28,23 @@ export async function fetchCtDeviceList() {
   }
 }
 
-export async function fetchCtRecords(deviceId: string, days: number = 7) {
+export async function fetchCtRecords(deviceId: string, days: number = 7, maxPoints: number = 0) {
   try {
     const { data } = await request.get<any, CtRecordRes[]>(chartApi.getCtDeviceRecords, {
       deviceId,
-      days
+      days,
+      maxPoints
+    })
+    return { raw: data }
+  } catch (error) {
+    onError(error)
+  }
+}
+
+export async function fetchCtSamples(deviceId: string) {
+  try {
+    const { data } = await request.get<any, any[]>(chartApi.getCtDeviceSamples, {
+      deviceId
     })
     return { raw: data }
   } catch (error) {

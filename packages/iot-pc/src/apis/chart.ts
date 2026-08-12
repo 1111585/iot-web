@@ -44,7 +44,8 @@ const common = {
   getCtDeviceList: '/ct/device/list',
   getCtDeviceRecords: '/ct/device/records',
   getAlarmDetail: '/ct/device/alarm-detail',
-  updateCtConfig: '/ct/device/config'
+  updateCtConfig: '/ct/device/config',
+  getCtDeviceSamples: '/ct/device/samples'
 }
 
 export const chartApi = {
