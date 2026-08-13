@@ -86,7 +86,6 @@
             <div class="info-item"><span class="label">触发相位：</span><span class="value" style="font-weight:600">{{ ctInfo.phase }}相</span></div>
             <div class="info-item"><span class="label">触发电流：</span><span class="value" style="color:#fe3246;font-weight:600">{{ ctInfo.value }}A</span></div>
             <div class="info-item"><span class="label">告警阈值：</span><span class="value">{{ ctInfo.threshold }}A</span></div>
-            <div class="info-item"><span class="label">持续时间：</span><span class="value">-</span></div>
           </div>
         </el-card>
         <!-- 弧温告警专用信息 -->
@@ -122,10 +121,6 @@
             <div class="info-item">
               <span class="label">算法服务器：</span>
               <span class="value link" @click="onDeviceClick('aibox')">{{ info.aiBox }}</span>
-            </div>
-            <div class="info-item">
-              <span class="label">持续时间：</span>
-              <span class="value">{{ info.duration }}</span>
             </div>
           </div>
         </el-card>

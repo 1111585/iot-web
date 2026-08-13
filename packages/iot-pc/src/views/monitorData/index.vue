@@ -41,6 +41,11 @@
 
     <el-dialog v-model="configDialog.visible" title="设置" width="460px" destroy-on-close>
       <el-form :model="configDialog.form" label-width="110px">
+        <el-form-item label="告警启用">
+          <div style="width:100%; display:flex; justify-content:flex-end;">
+            <el-switch v-model="configDialog.form.enabled" :active-value="1" :inactive-value="0" />
+          </div>
+        </el-form-item>
         <el-form-item label="A相阈值(A)"><el-input v-model="configDialog.form.alarmAMax" type="number" step="any" /></el-form-item>
         <el-form-item label="B相阈值(A)"><el-input v-model="configDialog.form.alarmBMax" type="number" step="any" /></el-form-item>
         <el-form-item label="C相阈值(A)"><el-input v-model="configDialog.form.alarmCMax" type="number" step="any" /></el-form-item>
@@ -119,7 +124,7 @@ async function loadData() {
 
 const configDialog = reactive({
   visible: false, deviceId: '',
-  form: { alarmAMax: '', alarmBMax: '', alarmCMax: '', alarmOMax: '', currentRange: '100', alarmCooldown: '60' },
+  form: { enabled: 1, alarmAMax: '', alarmBMax: '', alarmCMax: '', alarmOMax: '', currentRange: '100', alarmCooldown: '60' },
   async submit() {
     const f = configDialog.form
     const a = f.alarmAMax !== '' ? +f.alarmAMax : undefined
@@ -128,7 +133,7 @@ const configDialog = reactive({
     const o = f.alarmOMax !== '' ? +f.alarmOMax : undefined
     const r = f.currentRange !== '' ? +f.currentRange : undefined
     const cd = f.alarmCooldown !== '' ? +f.alarmCooldown : undefined
-    const ok = await updateCtConfig({ deviceId: configDialog.deviceId, alarmAMax: a, alarmBMax: b, alarmCMax: c, alarmOMax: o, currentRange: r, alarmCooldown: cd })
+    const ok = await updateCtConfig({ deviceId: configDialog.deviceId, enabled: f.enabled, alarmAMax: a, alarmBMax: b, alarmCMax: c, alarmOMax: o, currentRange: r, alarmCooldown: cd })
     if (ok) { configDialog.visible = false; ElMessage.success('设置已保存'); loadData() }
     else { ElMessage.error('保存失败') }
   }
@@ -138,6 +143,7 @@ const chartDialog = reactive({ visible: false, title: '', deviceId: '' })
 function onChart(d: CtDeviceRes) { chartDialog.visible = true; chartDialog.title = d.deviceName + ' - 四相电流趋势图'; chartDialog.deviceId = d.id }
 function onConfig(d: CtDeviceRes) {
   configDialog.visible = true; configDialog.deviceId = d.id
+  configDialog.form.enabled = d.enabled ?? 1
   configDialog.form.alarmAMax = d.alarmAMax ?? ''; configDialog.form.alarmBMax = d.alarmBMax ?? ''
   configDialog.form.alarmCMax = d.alarmCMax ?? ''; configDialog.form.alarmOMax = d.alarmOMax ?? ''; configDialog.form.currentRange = d.currentRange ?? '100'
   configDialog.form.alarmCooldown = d.alarmCooldown ?? '60'

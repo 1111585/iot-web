@@ -52,7 +52,7 @@ export async function fetchCtSamples(deviceId: string) {
   }
 }
 
-export async function updateCtConfig(payload: { deviceId: string; alarmAMax?: number; alarmBMax?: number; alarmCMax?: number; alarmOMax?: number; currentRange?: number; alarmCooldown?: number }) {
+export async function updateCtConfig(payload: { deviceId: string; alarmAMax?: number; alarmBMax?: number; alarmCMax?: number; alarmOMax?: number; currentRange?: number; alarmCooldown?: number; enabled?: number }) {
   try {
     const url = chartApi.updateCtConfig
     const body = JSON.stringify(payload)
