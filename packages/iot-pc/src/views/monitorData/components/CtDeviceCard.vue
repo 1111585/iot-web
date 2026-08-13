@@ -47,7 +47,7 @@ import { computed } from 'vue'
 import type { CtDeviceRes } from '../types'
 
 const props = defineProps<{
-  device: CtDeviceRes & { warnCounts?: number }
+  device: CtDeviceRes
 }>()
 
 defineEmits<{
@@ -114,7 +114,6 @@ const timeDisplay = computed(() => {
   padding-bottom: var(--section-gap);
   border-bottom: 1px solid #cdd9e2;
   margin-bottom: 8px;
-  position: relative;
 
   .status-dot {
     width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;

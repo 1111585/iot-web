@@ -13,6 +13,7 @@
           <span style="color:#F56C6C">C {{ latest.C }}</span>
           <span style="color:#409EFF">O {{ latest.O }}</span>
         </div>
+        <div v-if="!isEmpty" class="chart-note">{{ noteText }}</div>
       </div>
       <div v-if="isEmpty" class="no-data-tip">暂无数据</div>
     </div>
@@ -20,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { Line } from '@antv/g2plot'
 import { fetchCtRecords, fetchCtSamples } from '../utils'
 
@@ -35,6 +36,12 @@ const timeRange = ref<'realtime' | 'day' | 'week'>('realtime')
 const isEmpty = ref(true)
 const latest = ref({ A: '-', B: '-', C: '-', O: '-' })
 let pollingTimer: ReturnType<typeof setInterval> | null = null
+
+const noteText = computed(() => {
+  if (timeRange.value === 'realtime') return '实时显示每次采样'
+  if (timeRange.value === 'day') return '每 10 分钟一条，取区间平均值'
+  return '每小时一条，取区间平均值'
+})
 
 const RT_WINDOW_MS = 60_000 // 实时滚动窗口 60 秒
 
@@ -226,5 +233,7 @@ onUnmounted(() => {
     background: rgba(255, 255, 255, 0.75); 
     font-size: 12px; font-family: monospace; line-height: 1.4;
     pointer-events: none; }
+  .chart-note { position: absolute; right: 8px; bottom: 6px; z-index: 10;
+    font-size: 12px; color: #999; pointer-events: none; }
   .no-data-tip { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #999; } } }
 </style>

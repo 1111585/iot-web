@@ -16,6 +16,7 @@ export interface CtDeviceRes {
   currentRange: number
   alarmCooldown: number
   currentFps: number
+  warnCounts?: number
   createTime: string | null
 }
 
