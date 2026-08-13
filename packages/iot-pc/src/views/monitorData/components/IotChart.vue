@@ -101,7 +101,7 @@ function initRealtimeChart(data: any[]) {
     color: ['#E6A23C', '#67C23A', '#F56C6C', '#409EFF'],
     point: { size: 0 },
     animation: false,
-    xAxis: { type: 'time', mask: 'HH:mm:ss', min: now - RT_WINDOW_MS, max: now },
+    xAxis: { type: 'time', mask: 'HH:mm:ss', nice: false, min: now - RT_WINDOW_MS, max: now },
     annotations: [anchorLine(now)]
   })
   tempLineChart.value.render()
@@ -115,7 +115,7 @@ function updateRealtimeChart(raw: any[]) {
   const now = Date.now()
   tempLineChart.value.changeData(data)
   tempLineChart.value.update({
-    xAxis: { min: now - RT_WINDOW_MS, max: now },
+    xAxis: { nice: false, min: now - RT_WINDOW_MS, max: now },
     annotations: [anchorLine(now)]
   })
 }
@@ -162,32 +162,42 @@ async function fetchHistory(range: 'day' | 'week') {
     const flat: any[] = []
     if (result?.raw) {
       for (const item of result.raw) {
-        const ts = item.collectTime ? formatTime(item.collectTime, range) : ''
+        const ms = Number(item.collectTime)
+        const label = formatTime(item.collectTime, range)
         flat.push(
-          { date: ts, type: 'A相', value: item.currentA ?? 0 },
-          { date: ts, type: 'B相', value: item.currentB ?? 0 },
-          { date: ts, type: 'C相', value: item.currentC ?? 0 },
-          { date: ts, type: 'O相', value: item.currentO ?? 0 }
+          { ts: ms, date: label, type: 'A相', value: item.currentA ?? 0 },
+          { ts: ms, date: label, type: 'B相', value: item.currentB ?? 0 },
+          { ts: ms, date: label, type: 'C相', value: item.currentC ?? 0 },
+          { ts: ms, date: label, type: 'O相', value: item.currentO ?? 0 }
         )
       }
     }
-    renderHistoryChart(flat)
+    renderHistoryChart(flat, range)
   } catch (e) { console.error('获取CT历史趋势数据失败:', e) }
 }
 
-function renderHistoryChart(data: any[]) {
+function renderHistoryChart(data: any[], range: 'day' | 'week') {
   destroyChart()
   isEmpty.value = data.length === 0
   if (data.length === 0) return
   const el = document.getElementById('tempTrendChart')
   if (!el) return
+  const now = Date.now()
+  const spanMs = range === 'week' ? 7 * 24 * 3600 * 1000 : 24 * 3600 * 1000
   tempLineChart.value = new Line(el, {
     data,
-    xField: 'date', yField: 'value', seriesField: 'type',
+    xField: 'ts', yField: 'value', seriesField: 'type',
     smooth: true, yAxis: { min: 0 },
     legend: { position: 'bottom' },
     color: ['#E6A23C', '#67C23A', '#F56C6C', '#409EFF'],
-    point: { size: 3 }
+    point: { size: 3 },
+    xAxis: {
+      type: 'time',
+      mask: range === 'week' ? 'M-D HH:00' : 'M-D HH:mm',
+      nice: false,
+      min: now - spanMs,
+      max: now
+    }
   })
   tempLineChart.value.render()
 }
@@ -213,7 +223,8 @@ onUnmounted(() => {
   .anchor-values { position: absolute; right: 8px; top: 8px; z-index: 10;
     display: flex; flex-direction: column; gap: 2px;
     border: 1px solid #333; border-radius: 4px; padding: 4px 8px;
-    background: #fff; font-size: 12px; font-family: monospace; line-height: 1.4;
+    background: rgba(255, 255, 255, 0.75); 
+    font-size: 12px; font-family: monospace; line-height: 1.4;
     pointer-events: none; }
   .no-data-tip { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #999; } } }
 </style>
