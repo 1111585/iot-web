@@ -3,9 +3,8 @@
     <!-- 标题区域使用el-tabs -->
     <div class="chart-header">
       <el-tabs v-model="activeTab" class="chart-tabs">
-        <el-tab-pane label="预警事件统计看板" name="statistics"></el-tab-pane>
-        <el-tab-pane label="预警事件趋势统计" name="trend"></el-tab-pane>
         <el-tab-pane label="温度趋势统计" name="temp"> </el-tab-pane>
+        <el-tab-pane label="预警事件统计看板" name="statistics"></el-tab-pane>
       </el-tabs>
     </div>
 
@@ -162,7 +161,7 @@
 </template>
 
 <script setup lang="ts">
-import { Line } from '@antv/g2plot'
+import { Line, Column } from '@antv/g2plot'
 import { ElMessage } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
 import { ref, reactive, onMounted, watch, nextTick } from 'vue'
@@ -218,7 +217,7 @@ const locationOptions = ref<ARC.Options[]>([]) // 区域选项
 const senseOptions = ref<ARC.Options[]>([]) // 双光源预警选项
 const timeInterval = ref('1m')
 const datePicker = ref('')
-const activeTab = ref<string | number>('temp') // 默认选中预警事件趋势统计页签
+const activeTab = ref<string | number>('temp') // 默认选中温度趋势统计页签
 
 const tempSelectedDate = ref<Date | undefined>(undefined)
 const tempDateRange = ref<[Date, Date] | undefined>(undefined)
@@ -243,18 +242,22 @@ watch(
 const chartRef = ref<HTMLElement | null>(null)
 const chartData = ref<any[]>([])
 const legendItems = ref<string[]>([])
-let lineChart: Line | null = null
+let lineChart: any = null
 
-// 动态生成颜色（基于字符串哈希，保证同一名称颜色固定且清晰）
+// 固定颜色：电弧闪络=蓝、超温一级=橙、超温二级=红
 const getColorByType = (type: string) => {
+  if (type.includes('电弧')) return '#409EFF'
+  if (type.includes('一级') || type.includes('1预警')) return '#E6A23C'
+  if (type.includes('二级') || type.includes('2预警')) return '#F56C6C'
+  return '#909399'
+}
+
+// 温度趋势曲线颜色（基于名称哈希，保证同一设备/类型颜色固定）
+const getTempColor = (type: string) => {
   let hash = 0
   for (let i = 0; i < type.length; i++) {
     hash = type.charCodeAt(i) + ((hash << 5) - hash)
   }
-  // 使用 HSL 确保颜色可见性
-  // Hue: 0-360 (由 hash 决定)
-  // Saturation: 70% (保持鲜艳)
-  // Lightness: 45% (避免太亮看不清，或太暗)
   const h = Math.abs(hash % 360)
   return `hsl(${h}, 70%, 45%)`
 }
@@ -420,8 +423,7 @@ const fetchChartData = async () => {
 
   try {
     // 根据当前激活的标签页选择不同的API端点
-    const apiEndpoint =
-      activeTab.value === 'statistics' ? chartApi.event.getChartBord : chartApi.event.getChart
+    const apiEndpoint = chartApi.event.getChartBord
 
     console.log('当前标签页:', activeTab.value, '使用接口:', apiEndpoint)
 
@@ -525,13 +527,25 @@ const renderChart = () => {
   // 按时间排序
   processedData.sort((a, b) => new Date(a.timeLabel).getTime() - new Date(b.timeLabel).getTime())
 
-  lineChart = new Line(chartRef.value, {
-    data: processedData,
+  // 固定三个事件类型：每个时间点补齐三根柱（值为0也占位）
+  const FIXED_TYPES = ['电弧闪络', '超温一级', '超温二级']
+  const timeLabels = [...new Set(processedData.map((d) => d.timeLabel))]
+    .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+  const filledData: Array<{ timeLabel: string; type: string; value: number }> = []
+  timeLabels.forEach((timeLabel) => {
+    FIXED_TYPES.forEach((type) => {
+      const existing = processedData.find((d) => d.timeLabel === timeLabel && d.type === type)
+      filledData.push({ timeLabel, type, value: existing ? existing.value : 0 })
+    })
+  })
+
+  lineChart = new Column(chartRef.value, {
+    data: filledData,
     xField: 'timeLabel', // 使用完整时间作为X轴
     yField: 'value', // 使用value作为Y轴
     seriesField: 'type', // 按类型分组
-    smooth: true, // 开启平滑曲线，使线条更平滑
-    connectNulls: false, // 不连接空值点
+    isGroup: true, // 分组柱状图
+    columnWidthRatio: 0.6, // 柱宽比例
     appendPadding: [10, 0, 0, 0],
     animation: {
       appear: {
@@ -586,24 +600,12 @@ const renderChart = () => {
       }
     },
     tooltip: {
-      showCrosshairs: true,
       shared: true,
       formatter: (datum) => {
         return {
           name: datum.type,
           value: datum.value,
           title: datum.timeLabel // 使用原始时间作为提示标题
-        }
-      }
-    },
-    state: {
-      active: {
-        style: {
-          visible: true,
-          r: 5,
-          lineWidth: 2,
-          stroke: '#fff',
-          fill: 'transparent'
         }
       }
     },
@@ -662,7 +664,7 @@ const renderTempChart = (data: TempDataPoint[], intervalType?: string) => {
       position: 'top',
       itemHeight: 16
     },
-    color: ({ type }) => getColorByType(type),
+    color: ({ type }) => getTempColor(type),
     lineStyle: {
       lineWidth: 3
     },
