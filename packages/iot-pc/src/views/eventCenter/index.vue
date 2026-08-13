@@ -527,6 +527,10 @@ onMounted(() => {
       value: key,
       title: data[key]
     }))
+    // 确保 CT过流（levelType=4）标签始终存在（字典若未配置则兜底追加）
+    if (!tagList.some((t) => t.value === '4')) {
+      tagList.push({ value: '4', title: 'CT过流' })
+    }
     tagList.unshift({ value: '0', title: '全部' })
 
     eventCenterTag.value = [

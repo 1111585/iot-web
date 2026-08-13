@@ -31,13 +31,6 @@
           </template>
           <template #default>
             <div class="left-buttons">
-              <el-button
-                icon="i-ep-video-play"
-                :loading="is.videoDialogLoading"
-                @click="watchRealTimeVideo"
-              >
-                查看实时视频
-              </el-button>
               <el-button @click="onStateChange('prev')">上一条</el-button>
               <el-button @click="onStateChange('next')">下一条</el-button>
             </div>
