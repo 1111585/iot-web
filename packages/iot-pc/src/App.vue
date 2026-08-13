@@ -4,6 +4,12 @@
       <div id="main">
         <router-view />
       </div>
+      <EventDetailDialog
+        v-model:visible="globalAlarmDialog.visible"
+        :data="globalAlarmDialog.data"
+        @refresh="globalAlarmDialog.visible = false"
+        @stateChange="handleGlobalStateChange"
+      />
     </ThemeProvider>
   </ElConfigProvider>
 </template>
@@ -12,7 +18,8 @@
 import { ElConfigProvider } from 'element-plus'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import ThemeProvider from '@/components/theme/themeProvider.vue'
-import { handleEventRing } from '@/views/eventCenter/utils/event'
+import EventDetailDialog from '@/views/eventCenter/components/EventDetailDialog.vue'
+import { checkGlobalAlarm, globalAlarmDialog, handleGlobalStateChange } from '@/views/eventCenter/utils/globalAlarm'
 import { listenErrorLogs } from '@/views/systemManage/utils/actions'
 import { useRouter } from 'vue-router'
 import { debounce } from 'lodash-es'
@@ -37,7 +44,7 @@ function checkGlobalAlert() {
   if (isInWhitelist()) {
     return
   }
-  handleEventRing()
+  checkGlobalAlarm()
 }
 
 // 使用防抖处理路由变化时的检查，避免短时间内多次触发
