@@ -218,6 +218,21 @@ async function onDownloadClick() {
       method: 'GET'
     })
 
+    // 后端异常会被包装成 HTTP 200 的 JSON，避免把错误报文当成 zip 下载
+    const contentType = res.headers.get('content-type') || ''
+    if (!res.ok || contentType.includes('application/json') || contentType.includes('text/')) {
+      let message = '下载失败'
+      try {
+        const text = await res.text()
+        const json = JSON.parse(text)
+        message = json?.msg || json?.message || json?.data?.msg || message
+      } catch {
+        // 忽略解析错误，使用默认提示
+      }
+      ElNotification({ title: '下载失败', message, type: 'error' })
+      return
+    }
+
     const date = new Date()
     const dateStr = date.getFullYear() + '年' + (date.getMonth() + 1) + '月' + date.getDate() + '日'
     const fileName = `预警信息${dateStr}.zip`

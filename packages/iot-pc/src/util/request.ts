@@ -276,6 +276,20 @@ class Request extends RequestUtil {
         throw new Error(`请求失败: ${response.status} ${response.statusText}`)
       }
 
+      // 后端异常通常被包装成 HTTP 200 的 JSON，避免把错误报文当成文件下载
+      const contentType = response.headers.get('content-type') || ''
+      if (contentType.includes('application/json') || contentType.includes('text/')) {
+        let message = '下载失败'
+        try {
+          const text = await response.text()
+          const json = JSON.parse(text)
+          message = json?.msg || json?.message || json?.data?.msg || message
+        } catch {
+          // 忽略解析错误，使用默认提示
+        }
+        throw new Error(message)
+      }
+
       // 尝试从Content-Disposition获取文件名
       const contentDisposition = response.headers.get('content-disposition')
       if (contentDisposition) {
