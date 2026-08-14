@@ -3,8 +3,8 @@
     <!-- 标题区域使用el-tabs -->
     <div class="chart-header">
       <el-tabs v-model="activeTab" class="chart-tabs">
-        <el-tab-pane label="温度趋势统计" name="temp"> </el-tab-pane>
-        <el-tab-pane label="预警事件统计看板" name="statistics"></el-tab-pane>
+        <el-tab-pane label="温度趋势" name="temp"> </el-tab-pane>
+        <el-tab-pane label="统计看板" name="statistics"></el-tab-pane>
       </el-tabs>
     </div>
 
@@ -16,8 +16,8 @@
           <el-input v-model="deviceId" placeholder="请输入设备编号或名称" clearable></el-input>
         </div> -->
         <div class="filter-item">
-          <span class="filter-label">双光源预警报警：</span>
-          <el-select v-model="dualLightAlarm" placeholder="请选择预警类型" clearable>
+          <span class="filter-label">选择设备：</span>
+          <el-select v-model="dualLightAlarm" placeholder="请选择设备" clearable>
             <el-option label="全部" value=""></el-option>
             <el-option
               v-for="item in senseOptions"
@@ -27,7 +27,7 @@
             ></el-option>
           </el-select>
         </div>
-        <div class="filter-item">
+        <!-- <div class="filter-item">
           <span class="filter-label">区域：</span>
           <el-select v-model="region" placeholder="请选择区域" clearable>
             <el-option label="全部区域" value=""></el-option>
@@ -38,7 +38,7 @@
               :value="item.value"
             ></el-option>
           </el-select>
-        </div>
+        </div> -->
         <div class="filter-item">
           <span class="filter-label">处理状态：</span>
           <el-select v-model="chartQuery.disposeType" placeholder="请选择处理状态" clearable>
@@ -82,34 +82,27 @@
     <div class="time-selection">
       <!-- 预警事件统计的时间选择 -->
       <template v-if="activeTab !== 'temp'">
-        <div class="time-interval-select">
-          <span class="interval-label">时间间隔：</span>
-          <el-select
-            v-model="timeInterval"
-            @change="handleTimeIntervalChange"
-            clearable
-            placeholder="请选择时间间隔"
-            style="width: 140px"
-          >
-            <el-option label="1小时" value="1h"></el-option>
-            <el-option label="2小时" value="2h"></el-option>
-            <el-option label="1天" value="1d"></el-option>
-            <el-option label="2天" value="2d"></el-option>
-            <el-option label="1周" value="1w"></el-option>
-            <el-option label="2周" value="2w"></el-option>
-            <el-option label="1月" value="1m"></el-option>
-            <el-option label="2月" value="2m"></el-option>
-          </el-select>
+        <div class="quick-range-buttons">
+          <button
+            v-for="btn in quickRanges"
+            :key="btn.value"
+            class="quick-btn"
+            :class="{ active: quickRange === btn.value }"
+            @click="handleQuickRange(btn.value)"
+          >{{ btn.label }}</button>
         </div>
         <div class="date-picker">
           <el-date-picker
-            v-model="datePicker"
-            type="month"
-            format="YYYY-MM"
-            value-format="YYYY-MM"
-            placeholder="选择月份"
-            style="width: 140px; margin-left: 10px"
-            @change="handleDateChange"
+            v-model="eventDateRange"
+            type="daterange"
+            range-separator="至"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+            format="YYYY/MM/DD"
+            value-format="YYYY-MM-DD"
+            style="width: 280px"
+            :disabledDate="disableFutureDate"
+            @change="handleEventDateRangeChange"
           ></el-date-picker>
         </div>
       </template>
@@ -215,9 +208,18 @@ const dualLightAlarm = ref('')
 const region = ref('')
 const locationOptions = ref<ARC.Options[]>([]) // 区域选项
 const senseOptions = ref<ARC.Options[]>([]) // 双光源预警选项
-const timeInterval = ref('1m')
-const datePicker = ref('')
 const activeTab = ref<string | number>('temp') // 默认选中温度趋势统计页签
+
+// 预警事件统计：快捷时间范围 + 日期范围
+const quickRanges = [
+  { label: '今天', value: 'today' },
+  { label: '近7天', value: '7d' },
+  { label: '近30天', value: '30d' },
+  { label: '本月', value: 'month' },
+  { label: '上月', value: 'lastMonth' }
+]
+const quickRange = ref('30d')
+const eventDateRange = ref<[string, string] | null>(null)
 
 const tempSelectedDate = ref<Date | undefined>(undefined)
 const tempDateRange = ref<[Date, Date] | undefined>(undefined)
@@ -268,60 +270,46 @@ const getColorByIndex = (index: number) => {
   return `hsl(${(index * 137.5) % 360}, 70%, 45%)`
 }
 
-// 处理时间间隔选择变化
-const handleTimeIntervalChange = () => {
-  updateTimeRange(timeInterval.value)
-  fetchChartData()
+// 日期转 YYYY-MM-DD（用于日期范围选择器展示）
+const toDateOnly = (date: Date) => {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
-// 更新时间范围
-const updateTimeRange = (interval: string) => {
+// 计算快捷时间范围
+const calcQuickRange = (value: string) => {
   const now = new Date()
-  let endDate: Date
-  let startDate: Date
-
-  // 小时级别的筛选使用当前时间作为结束时间
-  if (interval === '1h' || interval === '2h') {
-    endDate = new Date(now) // 使用当前时间作为结束时间
-    startDate = new Date(now) // 从当前时间往前计算
-
-    if (interval === '1h') {
-      startDate.setHours(startDate.getHours() - 1)
-    } else {
-      // '2h'
-      startDate.setHours(startDate.getHours() - 2)
-    }
-  } else {
-    // 其他时间间隔使用当天结束时间和当天开始时间
-    endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
-    startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0)
-
-    switch (interval) {
-      case '1d':
-        startDate.setDate(startDate.getDate() - 1)
-        break
-      case '2d':
-        startDate.setDate(startDate.getDate() - 2)
-        break
-      case '1w':
-        startDate.setDate(startDate.getDate() - 7)
-        break
-      case '2w':
-        startDate.setDate(startDate.getDate() - 14)
-        break
-      case '1m':
-        startDate.setMonth(startDate.getMonth() - 1)
-        break
-      case '2m':
-        startDate.setMonth(startDate.getMonth() - 2)
-        break
-      default:
-        startDate.setMonth(startDate.getMonth() - 1) // 默认为1个月
-    }
+  const start = new Date(now)
+  let end = new Date(now)
+  switch (value) {
+    case 'today':
+      start.setHours(0, 0, 0, 0)
+      end.setHours(23, 59, 59, 999)
+      break
+    case '7d':
+      start.setDate(start.getDate() - 7)
+      start.setHours(0, 0, 0, 0)
+      end.setHours(23, 59, 59, 999)
+      break
+    case 'month':
+      start.setDate(1)
+      start.setHours(0, 0, 0, 0)
+      end.setHours(23, 59, 59, 999)
+      break
+    case 'lastMonth':
+      start.setDate(1)
+      start.setMonth(start.getMonth() - 1)
+      start.setHours(0, 0, 0, 0)
+      end = new Date(start.getFullYear(), start.getMonth() + 1, 0, 23, 59, 59)
+      break
+    default: // '30d'
+      start.setDate(start.getDate() - 30)
+      start.setHours(0, 0, 0, 0)
+      end.setHours(23, 59, 59, 999)
   }
-
-  chartQuery.startTime = formatDate(startDate)
-  chartQuery.endTime = formatDate(endDate)
+  return { start, end }
 }
 
 // 格式化日期
@@ -335,17 +323,29 @@ const formatDate = (date: Date) => {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
 }
 
-// 日期选择器变更处理
-const handleDateChange = () => {
-  if (datePicker.value) {
-    const [year, month] = datePicker.value.split('-').map(Number)
-    const startDate = new Date(year, month - 1, 1)
-    const endDate = new Date(year, month, 0, 23, 59, 59)
+// 应用时间范围到查询参数
+const applyEventRange = (start: Date, end: Date) => {
+  chartQuery.startTime = formatDate(start)
+  chartQuery.endTime = formatDate(end)
+  eventDateRange.value = [toDateOnly(start), toDateOnly(end)]
+}
 
-    chartQuery.startTime = formatDate(startDate)
-    chartQuery.endTime = formatDate(endDate)
-    fetchChartData()
-  }
+// 快捷时间范围按钮
+const handleQuickRange = (value: string) => {
+  quickRange.value = value
+  const { start, end } = calcQuickRange(value)
+  applyEventRange(start, end)
+  fetchChartData()
+}
+
+// 日期范围选择器变化
+const handleEventDateRangeChange = (range: [string, string] | null) => {
+  quickRange.value = ''
+  if (!range || range.length !== 2) return
+  const start = new Date(`${range[0]} 00:00:00`)
+  const end = new Date(`${range[1]} 23:59:59`)
+  applyEventRange(start, end)
+  fetchChartData()
 }
 
 // 温度时间变更处理
@@ -814,7 +814,9 @@ onMounted(async () => {
   tempLineQuery.endDate = formatDateOnly(today)
   tempLineQuery.intervalType = '4' // 默认1天间隔
 
-  updateTimeRange(timeInterval.value)
+  // 预警事件统计：默认近30天
+  const defaultRange = calcQuickRange('30d')
+  applyEventRange(defaultRange.start, defaultRange.end)
   fetchLocationOptions()
   fetchSenseOptions().then(() => {
     if (activeTab.value === 'temp') {
@@ -900,6 +902,34 @@ onMounted(async () => {
   border-top: 1px solid #ebeef5;
   border-bottom: 1px solid #ebeef5;
   padding: 12px 0;
+
+  .quick-range-buttons {
+    display: flex;
+    gap: 8px;
+    margin-right: 16px;
+
+    .quick-btn {
+      padding: 4px 14px;
+      border: 1px solid #dcdfe6;
+      border-radius: 4px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 13px;
+      color: #606266;
+      transition: all 0.2s;
+
+      &:hover {
+        color: #409eff;
+        border-color: #409eff;
+      }
+
+      &.active {
+        background: #409eff;
+        border-color: #409eff;
+        color: #fff;
+      }
+    }
+  }
 
   .time-interval-select {
     display: flex;

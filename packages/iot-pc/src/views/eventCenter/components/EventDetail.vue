@@ -5,7 +5,7 @@
         <!-- CT 告警：电流趋势图 -->
         <el-card v-if="isCTLevel" class="preview-card">
           <template #header>
-            <div class="card-header"><span class="card-title">告警曲线</span></div>
+            <div class="card-header"><span class="card-title">电流趋势</span></div>
           </template>
           <AlarmChart v-if="ctInfo.deviceId"
             :device-id="ctInfo.deviceId"
