@@ -95,6 +95,7 @@ import DeviceAddBtn from '@/views/deviceManage/components/DeviceAddBtn.vue'
 import { request } from '@/util/request'
 import { deviceApi } from '@/apis/device'
 import { DetectContent } from '@/enums'
+import { deviceListRefreshSignal } from '@/utils/deviceListRefresh'
 import {
   detectDeviceColumn as columns,
   detectDeviceForm as formFields,
@@ -248,6 +249,10 @@ function main() {
 }
 
 watch(listPayload, main, { deep: true })
+
+// 处置/删除告警成功后主动刷新设备列表红点
+watch(deviceListRefreshSignal, main)
+
 watch(
   () => addDialog.visible,
   (flag) => {

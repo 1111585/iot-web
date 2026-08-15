@@ -131,6 +131,7 @@ import { deviceApi } from '@/apis/device'
 import { request } from '@/util/request'
 import { SenseAblity } from '@/enums'
 import { useConfigStore } from '@/store/config'
+import { deviceListRefreshSignal } from '@/utils/deviceListRefresh'
 import {
   tabItems,
   addDialog,
@@ -356,6 +357,9 @@ watch(
 )
 
 watch(listPayload, main, { deep: true })
+
+// 处置/删除告警成功后主动刷新设备列表红点
+watch(deviceListRefreshSignal, main)
 
 onMounted(() => {
   listPayload.value.box = 'total'

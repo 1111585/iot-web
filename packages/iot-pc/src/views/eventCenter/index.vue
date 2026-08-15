@@ -142,6 +142,7 @@ import {
 } from './utils'
 import { fetchBindingLocationOptions } from '@/views/deviceManage/utils'
 import { StoreEventKey } from '@/consts'
+import { notifyDeviceListRefresh } from '@/utils/deviceListRefresh'
 import type { EventRes, EventData } from './types'
 
 const { isBellEnabled } = audioStore()
@@ -449,6 +450,7 @@ function handleDeleteSelected(selectedItems: EventData[]) {
         is.checkAll = false
         // 删除成功后更新数据并同步localStorage
         updateCountsAndRefresh()
+        notifyDeviceListRefresh()
       }
     })
     .catch(() => console.log('取消删除'))
@@ -476,6 +478,7 @@ function handleSettleSelected(selectedItems: EventData[]) {
         is.checkAll = false
         // 处置成功后更新数据并同步localStorage
         updateCountsAndRefresh()
+        notifyDeviceListRefresh()
       }
     })
     .catch(() => console.log('取消设为已处置'))

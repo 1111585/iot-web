@@ -499,9 +499,10 @@ const loadDevices = async (showLoading = false) => {
         return zonesWithArea.map((z) => ({ ...z, rank: rankMap.get(z.id) || 0 }))
       })()
 
-      const warnInfoFromApi = countsRaw?.find((itemCount) => item.deviceId == itemCount.deviceId)
-      const warnCountFromApi = warnInfoFromApi?.num
-      const hasArcFlash = warnInfoFromApi?.levelType === 1
+      // 同一设备会按 levelType 返回多条（闪络/超温1/超温2），需要求和才是总未处理数
+      const deviceCounts = countsRaw?.filter((itemCount) => item.deviceId == itemCount.deviceId) || []
+      const warnCountFromApi = deviceCounts.reduce((sum, it) => sum + (+it.num || 0), 0)
+      const hasArcFlash = deviceCounts.some((it) => it.levelType === 1)
 
       return {
         id: item.sensingDeviceRealTimeVoList[0]?.deviceId as unknown as number,

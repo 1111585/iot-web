@@ -110,6 +110,7 @@ import { downloadBlod, generateEasyId, sleep } from '@/util'
 import { useGet } from '@/composable/requestSup'
 import { request } from '@/util/request'
 import { deviceApi } from '@/apis/device'
+import { notifyDeviceListRefresh } from '@/utils/deviceListRefresh'
 import type { EventData, StreamConfigRes } from '../types'
 
 interface Props {
@@ -194,14 +195,16 @@ function handleEvent() {
 
 function handleRefresh() {
   forceKey.value++
-  // 处置成功后通知外层刷新列表
+  // 处置成功后通知外层刷新列表 + 通知设备列表刷新红点
   emits('refresh')
+  notifyDeviceListRefresh()
 }
 
 function onDeleteClick() {
-  useGet(deviceApi.deleteEvent, { warningId: props.data.id }, '删除', '是否要删除该预警').then(() =>
+  useGet(deviceApi.deleteEvent, { warningId: props.data.id }, '删除', '是否要删除该预警').then(() => {
     emits('refresh')
-  )
+    notifyDeviceListRefresh()
+  })
 }
 
 type State = 'prev' | 'next'

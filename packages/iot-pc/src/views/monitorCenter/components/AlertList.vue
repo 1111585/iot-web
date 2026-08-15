@@ -67,6 +67,7 @@ import EventDetailDialog from '@/views/eventCenter/components/EventDetailDialog.
 import { formatDate } from '@/util'
 import { request } from '@/util/request'
 import { deviceApi } from '@/apis/device'
+import { notifyDeviceListRefresh } from '@/utils/deviceListRefresh'
 import type { AlertItem } from '../types'
 
 interface Props {
@@ -107,6 +108,7 @@ const filteredList = computed(() => {
 })
 
 function onRefresh() {
+  isShow.eventDialog = false
   emits('refresh')
 }
 
@@ -142,6 +144,7 @@ async function onBatchDelete() {
     if (code === 100) {
       ElMessage.success('删除成功')
       emits('refresh')
+      notifyDeviceListRefresh()
     }
   } catch (error) {
     console.error(error)
