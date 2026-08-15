@@ -3,6 +3,7 @@ import { deviceApi } from '@/apis/device'
 import user from '@/store/user'
 import { EventStatus } from '@/enums'
 import { getImageList } from '@/util'
+import { normalizeAlerts } from './alerts'
 import type { MonitorOptionsRes } from '../types'
 import type { DeployDetail, SenseDeviceRes } from '@/views/deviceManage/types'
 
@@ -223,13 +224,7 @@ export async function fetchDetail(id: number) {
       (item) => Object.keys(areaMap).includes(item.value)
     )
 
-    const alertsList = alerts.map((item) => ({
-      title: item.levelType == '1' ? '闪络告警' : '超温告警',
-      device: item.equipmentName,
-      time: item.handlerTime,
-      descrition: item.remark,
-      status: item.disposeType
-    }))
+    const alertsList = normalizeAlerts(alerts)
 
     return {
       raw: res.data,

@@ -20,7 +20,7 @@ export interface MonitorOptionsRes {
 
 export interface AlertItem {
   title: string
-  device: string
+  device?: string
   time: string
   descrition: string
   status: number | string

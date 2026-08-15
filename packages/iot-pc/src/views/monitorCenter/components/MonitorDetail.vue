@@ -164,7 +164,7 @@
       <section>
         <h3>告警信息</h3>
         <el-tag v-if="alertList.length === 0" type="info">暂无告警信息</el-tag>
-        <AlertList v-else :list="alertList" />
+        <AlertList v-else :list="alertList" @refresh="main" />
       </section>
     </section>
   </div>

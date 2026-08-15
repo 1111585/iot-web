@@ -194,6 +194,8 @@ function handleEvent() {
 
 function handleRefresh() {
   forceKey.value++
+  // 处置成功后通知外层刷新列表
+  emits('refresh')
 }
 
 function onDeleteClick() {

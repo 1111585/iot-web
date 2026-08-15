@@ -254,8 +254,12 @@ export async function fetchDetail(type: keyof typeof detailUrls, reqData?: ARC.A
  * @param type 设备类型
  * @param id 主键id
  */
+/** 记录最近一次设备详情的查询参数，用于告警处理后刷新告警列表 */
+const deviceDetailQuery = ref<{ type: keyof typeof pageType; id: ARC.SN; deviceId: string } | null>(null)
+
 export async function fetchDeviceDetail(type: keyof typeof pageType, id: ARC.SN, deviceId: string) {
   try {
+    deviceDetailQuery.value = { type, id, deviceId }
     const { data } = await request.get<any, DeviceDetailRes>(deviceApi.getDeviceDetail, {
       type: pageType[type],
       id,
@@ -268,6 +272,12 @@ export async function fetchDeviceDetail(type: keyof typeof pageType, id: ARC.SN,
   } catch (error) {
     onError(error)
   }
+}
+
+/** 重新拉取设备详情（告警处理/删除后刷新告警记录列表） */
+export function refreshDeviceDetail() {
+  const query = deviceDetailQuery.value
+  if (query) return fetchDeviceDetail(query.type, query.id, query.deviceId)
 }
 
 export async function fetchVideoBaseInfo(type: 'video' | 'systemConfig' | 'other') {

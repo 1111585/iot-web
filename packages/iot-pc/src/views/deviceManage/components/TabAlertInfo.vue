@@ -1,25 +1,28 @@
 <template>
   <div class="tab-alert">
-    <AlertList v-if="alertList && alertList.length !== 0" :list="alertList" />
+    <AlertList
+      v-if="alertList && alertList.length !== 0"
+      :list="alertList"
+      @refresh="onRefresh"
+    />
     <empty v-else />
   </div>
 </template>
 
 <script setup lang="ts">
 import AlertList from '@/views/monitorCenter/components/AlertList.vue'
+import { normalizeAlerts } from '@/views/monitorCenter/utils/alerts'
 import { shareDeviceDetail } from '../utils/store'
+import { refreshDeviceDetail } from '../utils/fetch'
 
 const alertList = computed(() => {
   if (!shareDeviceDetail.value?.disposeInfoList) return []
-  return shareDeviceDetail.value?.disposeInfoList.map((item) => ({
-    ...item,
-    title: item.levelType == 1 ? '闪络告警' : '超温告警',
-    device: item.equipmentName,
-    time: item.handlerTime,
-    descrition: item.remark,
-    status: item.disposeType
-  }))
+  return normalizeAlerts(shareDeviceDetail.value.disposeInfoList)
 })
+
+function onRefresh() {
+  refreshDeviceDetail()
+}
 </script>
 
 <style lang="scss" scoped>
