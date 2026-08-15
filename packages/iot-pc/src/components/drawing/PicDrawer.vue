@@ -153,6 +153,9 @@ const flatPoints = (points: { x: number; y: number }[]) => points.flatMap((p) =>
 const loadImage = () => {
   const img = new Image()
   img.style.objectFit = 'contain'
+  // 前端跨域问题会导致canvas调用toDataURL失败，需在设置 src 之前声明 crossOrigin
+  // https://konvajs.org/docs/posts/Tainted_Canvas.html
+  img.crossOrigin = 'Anonymous'
   img.src = props.imgUrl
   img.onload = () => {
     const aspectRatio = img.naturalWidth / img.naturalHeight
@@ -172,9 +175,6 @@ const loadImage = () => {
 
     imageConfig.image = img
   }
-  // 前端跨域问题会导致canvas调用toDataURL失败
-  // https://konvajs.org/docs/posts/Tainted_Canvas.html
-  img.crossOrigin = 'Anonymous'
 }
 
 const handleMouseDown = (e: any) => {

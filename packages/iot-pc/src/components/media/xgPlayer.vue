@@ -1,5 +1,5 @@
 <template>
-  <div :id="id"></div>
+  <div :id="id" data-xgfill="fill" :class="{ 'hide-controls': !controls }"></div>
 </template>
 
 <script setup lang="ts">
@@ -16,6 +16,8 @@ interface Props {
   /** 是否是直播流 */
   isLive?: boolean
   id?: string
+  /** 是否显示底部控制条（可见光需要，热成像不需要） */
+  controls?: boolean
 }
 
 interface Emits {
@@ -27,7 +29,8 @@ interface Emits {
 const props = withDefaults(defineProps<Props>(), {
   width: '100%',
   height: '100%',
-  id: 'mse'
+  id: 'mse',
+  controls: true
 })
 const emit = defineEmits<Emits>()
 
@@ -51,6 +54,7 @@ onMounted(() => {
     width: props.width,
     isLive: props.isLive,
     autoplay: props.autoPlay,
+    controls: props.controls,
     plugins: [FlvPlugin]
   })
 
@@ -103,4 +107,18 @@ defineExpose({
 })
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+:deep(.xgplayer) {
+  width: 100%;
+  height: 100%;
+}
+:deep(.xgplayer video) {
+  object-fit: fill !important;
+}
+:deep(.xgplayer xg-video-container.xg-video-container) {
+  bottom: 0 !important;
+}
+.hide-controls :deep(.xgplayer-controls) {
+  display: none !important;
+}
+</style>

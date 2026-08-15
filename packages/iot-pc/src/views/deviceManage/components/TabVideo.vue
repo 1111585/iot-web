@@ -16,6 +16,7 @@
             v-if="current.player === 'xg'"
             :url="device.address"
             :id="device.domId"
+            :controls="!device.name.includes('红外')"
             isLive
             autoPlay
             @error="onXgPlayerError"
@@ -98,7 +99,6 @@ import { ElMessage } from 'element-plus'
 import { Opportunity } from '@element-plus/icons-vue'
 import JessibucaPlayer from '@/components/media/JessibucaPlayer.vue'
 import xgPlayer from '@/components/media/xgPlayer.vue'
-import { toRelativeCoordinates } from '@/components/drawing/tools'
 import { NoVideoStream } from '@/components/renderer'
 import { request } from '@/util/request'
 import { normalizeStreamUrl } from '@/components/media/tools'
@@ -161,16 +161,18 @@ function handleCanvasClick(event: MouseEvent, playerId: string) {
     dragState.dragging = false
     return
   }
-  // 获取点击相对于容器的坐标
+  // 获取点击相对于画布的坐标（画布与播放器同尺寸）
   const container = document.getElementById(`overlay-container-${playerId}`)
   if (!container) return
 
-  const rect = container.getBoundingClientRect()
-  const x = event.clientX - rect.left
-  const y = event.clientY - rect.top
+  const canvas = container.querySelector('canvas') as HTMLCanvasElement | null
+  if (!canvas) return
+
+  const canvasRect = canvas.getBoundingClientRect()
+  const x = event.clientX - canvasRect.left
+  const y = event.clientY - canvasRect.top
 
   // 优先检测是否点击了文本区域，切换折叠状态
-  const canvas = container.querySelector('canvas') as HTMLCanvasElement | null
   const labelBoxes = (canvas as any)?._labelBoxes as
     | { x: number; y: number; w: number; h: number; zonesId: string }[]
     | undefined
@@ -183,22 +185,14 @@ function handleCanvasClick(event: MouseEvent, playerId: string) {
     }
   }
 
-  // 获取原始画布尺寸
-  const originalWidth = 600
-  // const originalHeight = 337;
-  const originalHeight = 450
+  // 视频按 fill 铺满窗口，归一化坐标 = 窗口坐标 / 窗口尺寸
+  const nx = Number((x / canvasRect.width).toFixed(5))
+  const ny = Number((y / canvasRect.height).toFixed(5))
 
-  // 计算相对于原始尺寸的坐标（修正计算方式）
-  const scaleX = rect.width / originalWidth
-  const scaleY = rect.height / originalHeight
-
-  const originalX = Math.round(x / scaleX)
-  const originalY = Math.round(y / scaleY)
-
-  // 存储点击位置
+  // 存储点击位置（归一化坐标）
   const newPoint = {
-    x: originalX,
-    y: originalY,
+    x: nx,
+    y: ny,
     playerId,
     maxTemp: void 0,
     minTemp: void 0,
@@ -207,10 +201,10 @@ function handleCanvasClick(event: MouseEvent, playerId: string) {
   clickPoints.value = [newPoint] // 只保留最新的点击点
 
   // 在控制台输出坐标信息
-  console.log(`点击坐标: (${originalX}, ${originalY})`)
+  console.log(`点击归一化坐标: (${nx}, ${ny})`)
 
   // 向后端发送坐标获取温度信息
-  getTemperatureData(originalX, originalY, playerId)
+  getTemperatureData(nx, ny, playerId)
 
   // 重新绘制所有形状和点击点
   updateAllShapes()
@@ -235,16 +229,13 @@ async function getTemperatureData(x: number, y: number, playerId: string) {
     const device = deviceList.value.find((d) => d.domId === playerId)
     if (!device) return
 
-    const relativeCoordinates = toRelativeCoordinates(x, y, 600, 450)
-
     console.log('设备信息:', device)
-    console.log('点击坐标:', x, y)
-    console.log('相对坐标:', relativeCoordinates)
+    console.log('点击归一化坐标:', x, y)
 
     const { data, code } = await request.get<any, TempRes>(deviceApi.getVideoTemp, {
       deviceId: props.data.deviceId,
-      x: Number(relativeCoordinates.relativeX.toFixed(5)),
-      y: Number(relativeCoordinates.relativeY.toFixed(5))
+      x: Number(x.toFixed(5)),
+      y: Number(y.toFixed(5))
     })
 
     if (code === 100 && data) {
@@ -293,28 +284,42 @@ function drawShapesOnCanvas(canvas: HTMLCanvasElement, shapes: DrawShape[]) {
   // 清除画布
   ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-  // 计算缩放比例，优先使用保存的 stageSize，默认 600x450
-  const firstShape = (shapes as any)?.[0] || {}
-  const baseStageWidth = firstShape.stageSize?.width || 600
-  const baseStageHeight = firstShape.stageSize?.height || 450
-  const scaleX = canvas.width / baseStageWidth
-  const scaleY = canvas.height / baseStageHeight
+  // 归一化坐标（0~1）→ 窗口坐标（视频按 fill 铺满窗口）
+  const toWindow = (nx: number, ny: number) => ({ x: nx * canvas.width, y: ny * canvas.height })
+
+  // 取形状的归一化点位：优先用 dets 带来的 normalizedPoints，老数据兜底由像素/stageSize 换算
+  const getNormalizedPoints = (shape: any): number[][] => {
+    if (shape.normalizedPoints && shape.normalizedPoints.length) return shape.normalizedPoints
+    if (shape.points && shape.points.length) {
+      const sw = shape.stageSize?.width
+      const sh = shape.stageSize?.height
+      if (!sw || !sh) {
+        console.warn('[TabVideo] 形状缺少画布尺寸(stageSize)，跳过绘制', shape)
+        return []
+      }
+      return shape.points.map((p: any) => [p.x / sw, p.y / sh])
+    }
+    return []
+  }
 
   // 记录文本区域用于折叠/展开点击
   const labelBoxes: { x: number; y: number; w: number; h: number; zonesId: string }[] = []
 
   // 绘制每个形状
   shapes.forEach((shape, index) => {
-    if (!shape.points || shape.points.length < 3) return
+    const npts = getNormalizedPoints(shape as any)
+    if (!npts || npts.length < 3) return
 
     ctx.beginPath()
 
-    // 移动到第一个点（应用缩放）
-    ctx.moveTo(shape.points[0].x * scaleX, shape.points[0].y * scaleY)
+    // 移动到第一个点（归一化 → 窗口）
+    const firstPt = toWindow(npts[0][0], npts[0][1])
+    ctx.moveTo(firstPt.x, firstPt.y)
 
-    // 连接其余点（应用缩放）
-    for (let i = 1; i < shape.points.length; i++) {
-      ctx.lineTo(shape.points[i].x * scaleX, shape.points[i].y * scaleY)
+    // 连接其余点
+    for (let i = 1; i < npts.length; i++) {
+      const pt = toWindow(npts[i][0], npts[i][1])
+      ctx.lineTo(pt.x, pt.y)
     }
 
     // 闭合路径
@@ -333,23 +338,22 @@ function drawShapesOnCanvas(canvas: HTMLCanvasElement, shapes: DrawShape[]) {
     const tempData = props.shapesTemperature?.find((t) => +t.zonesId === +shape.id)
 
     if (tempData) {
-      // 计算形状的左上角点，用于放置文本
-      // 找出最小的x和y坐标
+      // 计算形状左上角（归一化坐标），用于放置文本
       let minX = Infinity
       let minY = Infinity
-      let pointCount = shape.points.length
 
-      for (let i = 0; i < pointCount; i++) {
-        minX = Math.min(minX, shape.points[i].x)
-        minY = Math.min(minY, shape.points[i].y)
+      for (let i = 0; i < npts.length; i++) {
+        minX = Math.min(minX, npts[i][0])
+        minY = Math.min(minY, npts[i][1])
       }
 
       const zonesKey = String(tempData.zonesId)
 
-      // 应用缩放比例并添加足够的偏移 + 用户自定义偏移
+      // 归一化坐标转窗口坐标 + 用户自定义偏移
       const offset = labelOffsetState[zonesKey] || { dx: 0, dy: 0 }
-      let textX = minX * scaleX + 20 + offset.dx
-      let textY = minY * scaleY + 24 + offset.dy
+      const labelPt = toWindow(minX, minY)
+      let textX = labelPt.x + 20 + offset.dx
+      let textY = labelPt.y + 24 + offset.dy
 
       // 绘制ID和温度信息
       const text = [
@@ -405,9 +409,9 @@ function drawShapesOnCanvas(canvas: HTMLCanvasElement, shapes: DrawShape[]) {
 
       // 绘制区域内最高温度点位（+号标记），使用同色系
       if (tempData.maxX !== undefined && tempData.maxY !== undefined) {
-        const isNormalized = tempData.maxX <= 1 && tempData.maxY <= 1
-        const pointX = isNormalized ? tempData.maxX * canvas.width : tempData.maxX * scaleX
-        const pointY = isNormalized ? tempData.maxY * canvas.height : tempData.maxY * scaleY
+        // maxX/maxY 为归一化坐标（0~1），转为窗口坐标
+        const pointX = tempData.maxX * canvas.width
+        const pointY = tempData.maxY * canvas.height
         const crossSize = 8
         ctx.beginPath()
         ctx.strokeStyle = color
@@ -509,8 +513,9 @@ function drawShapesOnCanvas(canvas: HTMLCanvasElement, shapes: DrawShape[]) {
   const relevantPoints = clickPoints.value.filter((point) => point.playerId === canvasPlayerId)
 
   relevantPoints.forEach((point) => {
-    const displayX = point.x * scaleX
-    const displayY = point.y * scaleY
+    // 点击点存的是归一化坐标（0~1），转为窗口坐标
+    const displayX = point.x * canvas.width
+    const displayY = point.y * canvas.height
 
     // 绘制十字标记
     ctx.beginPath()
@@ -732,8 +737,7 @@ watch(
     display: flex;
     justify-content: space-between;
     width: 100%;
-    // height: 337px;
-    height: 450px;
+    height: 400px;
     border-radius: 4px;
   }
 

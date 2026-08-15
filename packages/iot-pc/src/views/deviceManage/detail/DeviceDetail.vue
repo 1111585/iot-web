@@ -213,7 +213,18 @@ onMounted(() => {
       shapes.value =
         res.raw?.monitoringInformationList
           .filter((item) => item.deviceType != 1)
-          .map((item) => JSON.parse(item.drawCfg)) || []
+          .map((item) => {
+            const drawCfg = JSON.parse(item.drawCfg)
+            let detZones: any[] = []
+            try {
+              detZones = JSON.parse(item.dets)?.detZones || []
+            } catch {
+              detZones = []
+            }
+            // 按 id 匹配 dets 里的区域，取归一化坐标（老数据也有，与发 AI 盒子的一致）
+            const zone = detZones.find((z: any) => String(z.id) === String(drawCfg.id))
+            return { ...drawCfg, normalizedPoints: zone?.points || [] }
+          }) || []
 
       shapes.value.forEach((item) => {
         item.config.stroke = 'green'

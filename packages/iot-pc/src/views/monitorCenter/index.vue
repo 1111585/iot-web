@@ -503,6 +503,12 @@ function formateDrawerData(tabData: TabData[], contrastAreas?: ContrastArea[]) {
   // 格式化为接口需要的类型
   const mapping = (tab: TabData, index: number) => {
     const coords = tab.rectCoords // [{x: 0, y: 0}, {x: 1, y: 2} ]
+    // 画布尺寸必须能获取到（不同视频宽高比不同，不做固定兜底），否则无法正确归一化
+    const stageWidth = tab.stageSize?.width
+    const stageHeight = tab.stageSize?.height
+    if (!stageWidth || !stageHeight) {
+      throw new Error(`区域「${tab.title}」缺少画布尺寸(stageSize)，请重新圈选`)
+    }
     /**
      * 去重，点与点连接时生成的重复点 [[0, 0], [1, 2]]
      * 点位坐标用了四舍五入，并转换为相对坐标
@@ -510,12 +516,12 @@ function formateDrawerData(tabData: TabData[], contrastAreas?: ContrastArea[]) {
     const points = Array.from(
       new Set(
         coords?.map((item) => {
-          // 先转换为相对坐标（绘制时默认指定了 600*400）
+          // 先转换为相对坐标（归一化，相对舞台尺寸）
           const relativeCoord = toRelativeCoordinates(
             Math.round(item.x),
             Math.round(item.y),
-            600,
-            400
+            stageWidth,
+            stageHeight
           )
           // 返回相对坐标的数组形式
           return JSON.stringify([relativeCoord.relativeX, relativeCoord.relativeY])
@@ -647,7 +653,16 @@ async function handleMonitorSubmit(
       picturePath: JSON.stringify(picture)
     }
 
-    const { detZones, maskZones } = formateDrawerData(tabData, contrastAreas)
+    let detZones: any = []
+    let maskZones: any = []
+    try {
+      const zones = formateDrawerData(tabData, contrastAreas)
+      detZones = zones.detZones
+      maskZones = zones.maskZones
+    } catch (e) {
+      ElMessage.error((e as Error)?.message || '画布尺寸缺失，无法提交')
+      return
+    }
 
     /**
      * 圈选区域的信息，无值传 ''
@@ -664,7 +679,7 @@ async function handleMonitorSubmit(
             detZones,
             maskZones
           }),
-          drawCfg: JSON.stringify({ ...tab.shapes, id: tab.id }),
+          drawCfg: JSON.stringify({ ...tab.shapes, id: tab.id, stageSize: tab.stageSize }),
           // coolingTime: tab.formData.cd || '',
           coolingTime: monitorAreaFormAddon.cd || '',
           zxdfz: tab.formData.zxdfz || '',
@@ -684,7 +699,7 @@ async function handleMonitorSubmit(
             detZones,
             maskZones
           }),
-          drawCfg: JSON.stringify({ ...tab.shapes, id: tab.id }),
+          drawCfg: JSON.stringify({ ...tab.shapes, id: tab.id, stageSize: tab.stageSize }),
           // coolingTime: tab.formData.cd || '',
           // distance: tab.formData.distance || '',
           coolingTime: monitorAreaFormAddon.cd || '',

@@ -198,9 +198,9 @@
         </div>
       </div>
       <PicDrawer
-        class="pic-drawer"
         ref="drawRef"
         :key="forceKey"
+        :stageWidth="660"
         :stageHeight="vhToNumber('65vh')"
         :imgUrl="drawBgImg"
         :strokeColor="drawConfig.strokeColor"
@@ -362,6 +362,9 @@ const onDrawingCoordsChanged = (data: { x: number; y: number }[][], shapes: Draw
     currentTab.shapes = shapes[currentTabIndex]
     if (stageSize?.width && stageSize?.height) {
       currentTab.stageSize = { width: stageSize.width, height: stageSize.height }
+    } else {
+      console.warn('[布控] 未能获取画布尺寸 stageSize，提交时将被阻止', stageSize)
+      ElMessage.warning('未能获取画布尺寸，请关闭弹窗后重新打开')
     }
   }
 
@@ -876,13 +879,6 @@ onMounted(() => {
   width: 20px;
   height: 20px;
   border-radius: 2px;
-}
-
-.pic-drawer {
-  // height: 95%;
-  transform: scale(1.1);
-  transform-origin: left top;
-  // border: 1px solid #dcdfe6;
 }
 
 .contrast-config {

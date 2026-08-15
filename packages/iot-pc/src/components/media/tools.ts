@@ -13,17 +13,13 @@
 import Player from 'xgplayer'
 import FlvPlugin from 'xgplayer-flv'
 
-const isDev = import.meta.env.DEV
-
 // 常量配置
 const SCREENSHOT_TIMEOUT = 10000
 const SCREENSHOT_DELAY = 1000
 const CONTAINER_SIZE = { width: '640px', height: '480px' }
 
-// 根据当前页面协议/域名/端口规范化流地址，避免后端返回固定IP
+// 根据当前页面协议/域名/端口规范化流地址，避免后端返回固定IP（dev 与部署保持一致）
 export function normalizeStreamUrl(address: string): string {
-  if (isDev) return address
-
   const url = new URL(address)
   const currentProtocol = window.location.protocol
   const currentHost = window.location.hostname
