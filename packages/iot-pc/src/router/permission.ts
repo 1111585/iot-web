@@ -47,8 +47,6 @@ if (isDev) {
   )
 }
 
-whitePages.push({ url: '/dashboard/devices', def: true })
-
 const whiteList = whitePages.map(({ url }) => url)
 const defPage = whitePages.filter(({ def }) => def)[0].url
 
@@ -69,6 +67,9 @@ export default function (router: Router) {
 
     // 无token，未登录
     if (!AuthUtil.getToken() || to.path === '/login' || !inSession) return next('/login')
+
+    // 默认首页（.env 中 VITE_APP_HOME 配置），登录后即可访问
+    if (to.path === import.meta.env.VITE_APP_HOME) return next()
 
     // 菜单接口会返回非菜单的值，暂不取用菜单中的 code 作为权限控制
     const runPermCheck = () => {

@@ -134,8 +134,10 @@ class Request extends RequestUtil {
         }
         if (badToken.includes(ret.msg)) {
           userStore().clearUserCacheAction()
-          errLogFn(ret.msg)
-          // setTimeout(() => (location.href = '/login'), 500)
+          // 未登录/登录失效：直接跳转登录页，避免反复弹错误提示
+          if (location.pathname !== '/login') {
+            location.href = '/login'
+          }
           return
         }
 
