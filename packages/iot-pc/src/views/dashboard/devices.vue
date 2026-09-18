@@ -104,38 +104,6 @@
         <empty />
       </div>
     </div>
-    <!-- 分割线 -->
-    <el-drawer size="90%" v-model="drawerVisible" :title="drawerTitle">
-      <el-container>
-        <el-aside width="200px">
-          <el-scrollbar height="90vh">
-            <div class="device-list">
-              <div
-                v-for="device in devices"
-                :key="device.id"
-                class="device-list-item"
-                :class="{ active: drawerState.deviceId === device.id }"
-                @click="onDrawerItemClick(device)"
-              >
-                <div class="device-list-item__header">
-                  <div
-                    class="device-status-indicator"
-                    :class="device.online ? 'online' : 'offline'"
-                  ></div>
-                  <span class="device-list-item__name">{{ device.name }}</span>
-                </div>
-                <div class="device-list-item__status">
-                  {{ device.online ? '在线' : '离线' }}
-                </div>
-              </div>
-            </div>
-          </el-scrollbar>
-        </el-aside>
-        <el-main style="margin-top: 14px">
-          <component :is="drawerComponents[drawerType]" :key="drawerState.deviceId" />
-        </el-main>
-      </el-container>
-    </el-drawer>
     <DetailDialog ref="detailDialogRef">
       <DeviceDetail page="sense" :data="detailDialogData" :activeTab="selectedTabName" />
     </DetailDialog>
@@ -173,7 +141,6 @@ import DeviceCardV2 from './components/DeviceCardV2.vue'
 import { findMaxAreaShape, polygonArea } from '@/components/drawing/tools'
 import {
   fetchDevices,
-  DrawerInjectKey,
   fetchDevicesWarningCounts,
   fetchPrimaryIdByDeviceId,
   fetchWarningStatistics,
@@ -183,23 +150,12 @@ import {
   tempDeviceV2,
   generateTempDeviceV2Mock
 } from './utils'
-import { injectKeys } from '../deviceManage/utils'
 
 import type { DrawShape } from '@/components/drawing/types'
 import type { DevicesRender } from './types'
 
 const formatTemp = (temp: number | undefined) =>
   Number.isFinite(temp) ? (temp as number).toFixed(1) : '--'
-
-const TabVideo = defineAsyncComponent(() => import('./components/VideoSection.vue'))
-const TabEvent = defineAsyncComponent(() => import('./components/EventSection.vue'))
-const TabChart = defineAsyncComponent(() => import('./components/ChartSection.vue'))
-
-const drawerComponents = {
-  video: TabVideo,
-  event: TabEvent,
-  trend: TabChart
-}
 
 const isDev = import.meta.env.DEV
 // const useMockData = isDev && true
@@ -227,17 +183,6 @@ let menuCloseTimer: ReturnType<typeof setTimeout> | null = null
 const detailDialogRef = ref<InstanceType<typeof DetailDialog>>()
 const selectedTabName = ref<string>('')
 const detailDialogData = computed(() => detailDialogRef.value?.data)
-
-const drawerVisible = ref(false)
-const drawerTitle = ref('')
-const drawerType = ref('')
-const drawerState = ref({
-  deviceId: '' as number | string,
-  deviceName: ''
-})
-
-provide(DrawerInjectKey, drawerState)
-provide(injectKeys.data, drawerState.value)
 
 const onContentClick = (deviceId: number) => {
   // 清除之前的计时器
@@ -305,11 +250,6 @@ const onMenuItemClick = async (
   } catch (error) {
     console.log(error)
   }
-}
-
-const onDrawerItemClick = (device: DevicesRender) => {
-  drawerState.value.deviceId = device.id
-  drawerState.value.deviceName = device.name
 }
 
 const selectedBox = ref('total')
@@ -601,102 +541,11 @@ onUnmounted(() => {
   justify-content: flex-start;
 }
 
-.device-status-indicator {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  flex-shrink: 0;
-
-  &.online {
-    background-color: #67c23a;
-    box-shadow: 0 0 6px rgba(103, 194, 58, 0.6);
-  }
-
-  &.offline {
-    background-color: #f56c6c;
-    box-shadow: 0 0 6px rgba(245, 108, 108, 0.6);
-  }
-}
-.device-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 12px;
-  height: 100%;
-  overflow-y: auto;
-}
-
-.device-list-item {
-  padding: 12px;
-  border-radius: 6px;
-  background: #f5f7fa;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border-left: 3px solid transparent;
-
-  &:hover {
-    background: #e8f4f8;
-    transform: translateX(4px);
-  }
-
-  &.active {
-    background: #e6f7ff;
-    border-left-color: #409eff;
-    box-shadow: 0 2px 8px rgba(64, 158, 255, 0.15);
-  }
-
-  &__header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 6px;
-  }
-
-  &__name {
-    font-size: 13px;
-    font-weight: 500;
-    color: #333;
-    flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  &__status {
-    font-size: 12px;
-    color: #666;
-    padding-left: 20px;
-  }
-}
-
 .devices-container {
   position: relative;
   // height: 93vh;
   overflow-y: auto;
   background-color: #fff !important;
-
-  &:deep(.el-drawer__header) {
-    padding: 10px 20px;
-    margin: 0;
-    background: linear-gradient(135deg, #384274 0%, #2d3456 100%);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-
-    .el-drawer__title {
-      color: #ffffff;
-      font-weight: 600;
-      font-size: 16px;
-    }
-
-    .el-drawer__close {
-      color: rgba(255, 255, 255, 0.8);
-      transition: all 0.3s ease;
-
-      &:hover {
-        color: #ffffff;
-        background: rgba(255, 255, 255, 0.1);
-      }
-    }
-  }
 }
 
 .sort-controls {

@@ -63,10 +63,10 @@
         </el-tab-pane>
         <template v-if="page === 'sense'">
           <el-tab-pane label="温度曲线" name="chart-temp">
-            <TabChart type="temp" :show-title="false" />
+            <TabChart type="temp" />
           </el-tab-pane>
           <el-tab-pane label="设备态势" name="chart-device">
-            <TabChart type="device" :show-title="false" />
+            <TabChart type="device" />
           </el-tab-pane>
         </template>
       </el-tabs>

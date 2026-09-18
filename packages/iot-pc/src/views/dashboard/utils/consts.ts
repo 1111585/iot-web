@@ -1,4 +1,3 @@
-import type { InjectionKey } from 'vue'
 import type { DevicesRender } from '../types'
 
 export const devicesColumn = [
@@ -28,28 +27,6 @@ export const devicesColumn = [
     ]
   }
 ] satisfies typeof devicesColumn
-
-export const drawerTitles = {
-  video: '实时视频',
-  event: '预警列表',
-  trend: '趋势统计'
-}
-
-export const eventColumn = [
-  { label: '事件类型', prop: 'levelType', align: 'center' },
-  { label: '监测设备', prop: 'monitoringDevice', align: 'center' },
-  { label: '感知设备', prop: 'sensingDevice', align: 'center' },
-  { label: '预警时间', prop: 'warningTime', align: 'center' },
-  { label: '所属点位', prop: 'owningPoint', align: 'center' },
-  { label: '处理状态', prop: 'disposeType', align: 'center', slot: 'disposeType' }
-]
-
-export interface InjectData {
-  deviceId?: number | string
-  deviceName?: string
-}
-
-export const DrawerInjectKey = Symbol() as InjectionKey<Ref<InjectData>>
 
 export const FETCH_FAIL_KEY = 'devicesFetchFailCount'
 

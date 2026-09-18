@@ -1,5 +1,5 @@
 <template>
-  <div class="tab-chart" :class="{ 'with-title': props.showTitle }">
+  <div class="tab-chart">
     <div class="chart-header" v-if="props.type === 'temp'">
       <el-button-group class="quick-group">
         <el-button
@@ -54,7 +54,7 @@
         导出
       </el-button>
     </div>
-    <section v-if="props.type === 'temp'" class="chart-container" :data-title="props.showTitle ? '温度曲线' : ''">
+    <section v-if="props.type === 'temp'" class="chart-container">
       <div v-if="isLoading" class="loading-overlay">
         <el-icon class="is-loading">
           <Loading />
@@ -62,7 +62,7 @@
       </div>
       <div id="tempChart" class="chart"></div>
     </section>
-    <section v-if="props.type === 'device'" class="chart-container" :data-title="props.showTitle ? '设备态势图' : ''">
+    <section v-if="props.type === 'device'" class="chart-container">
       <div v-if="isLoading" class="loading-overlay">
         <el-icon class="is-loading">
           <Loading />
@@ -90,11 +90,9 @@ import { fetchSenseDeviceSevenDays, fetchTempCurve, injectKeys } from '../utils'
 interface Props {
   // 图表类型
   type: 'temp' | 'device'
-  // 是否显示图表内置标题（所在页面已有页签名称时可关闭）
-  showTitle?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), { showTitle: true })
+const props = defineProps<Props>()
 
 const data = inject(injectKeys.data)
 
@@ -567,16 +565,6 @@ onUnmounted(() => {
     }
   }
 
-  // 保留内置标题时（如 dashboard 半宽卡片），标题单独占一行，工具条下移
-  &.with-title {
-    .chart-header {
-      top: 34px;
-    }
-    .chart {
-      margin-top: 66px;
-    }
-  }
-
   .chart-container {
     width: 100%;
     height: 100%;
@@ -584,17 +572,6 @@ onUnmounted(() => {
     justify-content: center;
     align-items: center;
     position: relative;
-
-    &::before {
-      content: attr(data-title);
-      position: absolute;
-      top: 10px;
-      left: 0;
-      right: 0;
-      text-align: center;
-      font-size: 16px;
-      font-weight: bold;
-    }
   }
 
   .chart {
