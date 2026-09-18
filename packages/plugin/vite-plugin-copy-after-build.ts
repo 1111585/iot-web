@@ -67,8 +67,14 @@ export default function ({ mode, cfg }: CopyAfterBuildOptions): Plugin {
           `🗄️ 更新后可通过: ${process.env.VITE_APP_DEPLOY_ON || "某处"} 访问`
         );
 
+        // 单独 try/catch：explorer.exe 打开文件夹经常返回非零退出码（非真失败），
+        // 不能让它掩盖“复制成功”的结论
         if (process.platform === "win32") {
-          execSync("explorer " + saveHere);
+          try {
+            execSync("explorer " + saveHere);
+          } catch {
+            logFn("⚠️ 未能自动打开资源管理器（不影响复制结果）");
+          }
         }
       } catch (error) {
         console.error("❌ 复制失败:", error);

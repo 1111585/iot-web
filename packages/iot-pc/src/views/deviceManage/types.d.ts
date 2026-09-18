@@ -429,5 +429,6 @@ export interface TempCurveDataRes {
   deviceName: string //设备名称
   minTemp: number //最小温度
   maxTemp: number //最大温度
+  avgTemp: number //平均温度
   recordTime: string //记录时间
 }

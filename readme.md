@@ -57,7 +57,7 @@ pnpm dev:pc
 | 命令 | 环境 | 说明 |
 |------|------|------|
 | `pnpm dev:pc` | dev | 本地开发，端口 8008 |
-| `pnpm --dir ./packages/iot-pc build:test` | test | 内网测试服 |
+| `pnpm --dir ./packages/iot-pc build:test` | test | 内网测试服 | 发行选这个
 | `pnpm --dir ./packages/iot-pc build:本地测试` | any | 本地 Nginx 验证 |
 | `pnpm --dir ./packages/iot-pc build:远程部署` | pro | 远程生产部署 |
 | `pnpm --dir ./packages/iot-pc build:debug` | debug | 保留 console 的调试包 |

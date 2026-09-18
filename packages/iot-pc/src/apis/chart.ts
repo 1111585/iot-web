@@ -43,9 +43,11 @@ const common = {
   // CT 三相电流
   getCtDeviceList: '/ct/device/list',
   getCtDeviceRecords: '/ct/device/records',
+  getCtDeviceRecordsExport: '/ct/device/records/export',
   getAlarmDetail: '/ct/device/alarm-detail',
   updateCtConfig: '/ct/device/config',
-  getCtDeviceSamples: '/ct/device/samples'
+  getCtDeviceSamples: '/ct/device/samples',
+  getCtDeviceSamplesExport: '/ct/device/samples/export'
 }
 
 export const chartApi = {

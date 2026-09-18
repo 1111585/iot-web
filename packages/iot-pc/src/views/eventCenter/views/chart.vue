@@ -118,11 +118,9 @@
             style="width: 120px"
             @change="handleIntervalChange"
           >
-            <el-option label="1小时" value="1"></el-option>
-            <el-option label="2小时" value="2"></el-option>
-            <el-option label="4小时" value="3"></el-option>
-            <el-option label="1天" value="4"></el-option>
-            <el-option label="1周" value="5"></el-option>
+            <el-option label="5分钟" value="5min"></el-option>
+            <el-option label="1小时" value="1h"></el-option>
+            <el-option label="1天" value="1d"></el-option>
           </el-select>
         </div>
         <div class="date-picker">
@@ -199,7 +197,7 @@ const tempLineQuery = reactive({
   deviceIds: [] as string[], // 设备id, 多个以 , 拼接
   startDate: '', // 开始时间
   endDate: '', // 结束时间
-  intervalType: '4' // 时间间隔（1:1小时，2:2小时，3:4小时，4:1天，5:1周）
+  intervalType: '1d' // 时间间隔（5min:5分钟，1h:1小时，1d:1天）
 })
 
 // 筛选条件
@@ -230,15 +228,26 @@ const disableFutureDate = (date: Date) => {
   return date > new Date()
 }
 
-watch(
-  () => tempLineQuery.intervalType,
-  (newVal) => {
-    if (activeTab.value === 'temp' && newVal) {
-      tempLineQuery.startDate = ''
-      tempSelectedDate.value = undefined
-    }
+// 格式化日期为 yyyy-MM-dd
+const formatDateOnly = (date: Date) => {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+// 5 分钟档最多查询 3 天（含首尾），超限时提示并返回 false
+const checkTemp5MinRange = () => {
+  const { startDate, endDate, intervalType } = tempLineQuery
+  if (intervalType !== '5min' || !startDate || !endDate) return true
+  const spanDays =
+    (new Date(`${endDate}T00:00:00`).getTime() - new Date(`${startDate}T00:00:00`).getTime()) / 86400000
+  if (spanDays > 2) {
+    ElMessage.error('选择 5 分钟间隔时，查询时间范围最多 3 天')
+    return false
   }
-)
+  return true
+}
 
 // 图表数据和引用
 const chartRef = ref<HTMLElement | null>(null)
@@ -353,16 +362,16 @@ const handleTempTimeChange = async () => {
   if (tempDateRange.value && tempDateRange.value.length === 2) {
     // 日期范围模式
     const [startDate, endDate] = tempDateRange.value
-    const formatDateOnly = (date: Date) => {
-      const year = date.getFullYear()
-      const month = String(date.getMonth() + 1).padStart(2, '0')
-      const day = String(date.getDate()).padStart(2, '0')
-      return `${year}-${month}-${day}`
-    }
     tempLineQuery.startDate = formatDateOnly(startDate)
     tempLineQuery.endDate = formatDateOnly(endDate)
-    // 默认选中1天间隔
-    tempLineQuery.intervalType = '4'
+    // 5 分钟档最多 3 天，超出范围时自动回落到"1天"间隔
+    const spanDays =
+      (new Date(`${tempLineQuery.endDate}T00:00:00`).getTime() -
+        new Date(`${tempLineQuery.startDate}T00:00:00`).getTime()) /
+      86400000
+    if (tempLineQuery.intervalType === '5min' && spanDays > 2) {
+      tempLineQuery.intervalType = '1d'
+    }
   } else if (tempSelectedDate.value) {
     // 单日期模式（保留向后兼容）
     const timeRange = calculateTempTimeRange(tempLineQuery.intervalType, tempSelectedDate.value)
@@ -377,7 +386,17 @@ const handleTempTimeChange = async () => {
 }
 
 const handleIntervalChange = async () => {
-  // 表单绑定不需要清空，只处理数据逻辑
+  // 以日期选择器的值为准；未选择时段时默认查询今天
+  if (tempDateRange.value && tempDateRange.value.length === 2) {
+    const [start, end] = tempDateRange.value
+    tempLineQuery.startDate = formatDateOnly(start)
+    tempLineQuery.endDate = formatDateOnly(end)
+  } else if (!tempLineQuery.startDate || !tempLineQuery.endDate) {
+    const today = formatDateOnly(new Date())
+    tempLineQuery.startDate = today
+    tempLineQuery.endDate = today
+  }
+  if (!checkTemp5MinRange()) return
   await fetchTempChartData()
 }
 
@@ -396,7 +415,7 @@ const fetchTempChartData = async () => {
     const dataFormat = result?.raw
 
     if (dataFormat && Array.isArray(dataFormat) && dataFormat.length > 0) {
-      const mappedData = mapTempCurveData(dataFormat)
+      const mappedData = mapTempCurveData(dataFormat, tempLineQuery.intervalType)
       chartData.value = mappedData
       renderTempChart(mappedData, tempLineQuery.intervalType)
     } else {
@@ -644,7 +663,9 @@ const renderTempChart = (data: TempDataPoint[], intervalType?: string) => {
     xAxis: {
       title: {
         text: ''
-      }
+      },
+      // 5 分钟档点位较密，标签自动隐藏避免重叠
+      label: { autoHide: true, autoRotate: false }
     },
     yAxis: {
       ...axisRange
@@ -774,13 +795,16 @@ const fetchSenseOptions = async () => {
 }
 
 const onExport = async () => {
+  if (!checkTemp5MinRange()) return
   try {
     request.downloadStream(
       chartApi.device.sense.exportTempCurveData,
       undefined,
       {
         ...tempLineQuery,
-        deviceIds: tempLineQuery.deviceIds.join(',')
+        deviceIds: Array.isArray(tempLineQuery.deviceIds)
+          ? tempLineQuery.deviceIds.join(',')
+          : tempLineQuery.deviceIds
       },
       'GET'
     )
@@ -804,15 +828,9 @@ onMounted(async () => {
   const oneWeekAgo = new Date(today)
   oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
   tempDateRange.value = [oneWeekAgo, today]
-  const formatDateOnly = (date: Date) => {
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
-  }
   tempLineQuery.startDate = formatDateOnly(oneWeekAgo)
   tempLineQuery.endDate = formatDateOnly(today)
-  tempLineQuery.intervalType = '4' // 默认1天间隔
+  tempLineQuery.intervalType = '1d' // 默认1天间隔
 
   // 预警事件统计：默认近30天
   const defaultRange = calcQuickRange('30d')

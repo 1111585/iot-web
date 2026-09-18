@@ -16,10 +16,8 @@ export const calculateTempTimeRange = (intervalType: string, referenceDate = new
   let startDate = ''
   let endDate = ''
 
-  if (['1', '2', '3'].includes(intervalType)) {
-    startDate = `${year}-${month}-${day} 00`
-    endDate = `${year}-${month}-${day} 23`
-  } else if (intervalType === '4') {
+  // 标准三档：5分钟 / 1小时 / 1天 —— 都表示"当天 00:00 ~ 23:59"
+  if (['5min', '1h', '1d'].includes(intervalType)) {
     startDate = `${year}-${month}-${day} 00`
     endDate = `${year}-${month}-${day} 23`
   } else {
@@ -45,11 +43,7 @@ const formatRecordLabel = (recordTime: string, intervalType?: string) => {
 
   const [datePart, timePart] = trimmed.split(' ')
 
-  if (['1', '2', '3', '4'].includes(intervalType || '')) {
-    return timePart ? `${datePart} ${timePart}` : datePart
-  }
-
-  if (intervalType === '5') {
+  if (intervalType === '1w') {
     return datePart
   }
 
@@ -103,18 +97,37 @@ const downsampleForWeek = (data: TempCurveDataRes[], maxPointsPerSeries = 56) =>
   return result
 }
 
+export interface MapTempCurveOptions {
+  /** 图例标签：full=「设备名-区域-最小/最大温度」（默认）；zone=仅「区域-平均值/最大值」 */
+  labelMode?: 'full' | 'zone'
+  /** 低值线口径：min=最小温度（默认）；avg=平均温度 */
+  lowValueMode?: 'min' | 'avg'
+}
+
 export const mapTempCurveData = (
   data: TempCurveDataRes[],
-  intervalType?: string
+  intervalType?: string,
+  options: MapTempCurveOptions = {}
 ): TempDataPoint[] => {
-  const processed = intervalType === '5' ? downsampleForWeek(data) : data
+  const { labelMode = 'full', lowValueMode = 'min' } = options
+  const processed = intervalType === '1w' ? downsampleForWeek(data) : data
   return processed
     .map((item) => {
       const formattedDate = formatRecordLabel(item.recordTime, intervalType)
       const deviceName = item.deviceName || ''
       const zoneName = item.zonesName || '区域' + item.zonesId
-      const zoneLabel = deviceName ? `${deviceName}-${zoneName}` : zoneName
 
+      // 设备卡片场景：图例只要「区域-平均值 / 区域-最大值」，且低值线用平均温度
+      if (labelMode === 'zone') {
+        const lowLabel = lowValueMode === 'avg' ? '平均值' : '最小值'
+        const lowValue = lowValueMode === 'avg' ? item.avgTemp : item.minTemp
+        return [
+          { date: formattedDate, type: `${zoneName}-${lowLabel}`, value: lowValue, deviceName },
+          { date: formattedDate, type: `${zoneName}-最大值`, value: item.maxTemp, deviceName }
+        ]
+      }
+
+      const zoneLabel = deviceName ? `${deviceName}-${zoneName}` : zoneName
       return [
         { date: formattedDate, type: `${zoneLabel}-最小温度`, value: item.minTemp, deviceName },
         { date: formattedDate, type: `${zoneLabel}-最大温度`, value: item.maxTemp, deviceName }
